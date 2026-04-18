@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | <%= collegeName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold text-white"><%= collegeName %></h1>
+      <p class="text-slate-400 text-sm mt-1">Attendance Management System</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-xl p-8">
+      <h2 class="text-lg font-semibold text-slate-700 mb-6">Sign In</h2>
+      <% if (error && error.length) { %>
+        <div class="flash-error p-3 rounded mb-4 text-sm"><%= error %></div>
+      <% } %>
+      <% if (success && success.length) { %>
+        <div class="flash-success p-3 rounded mb-4 text-sm"><%= success %></div>
+      <% } %>
+      <form action="/auth/login" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+          <input type="email" name="email" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500" placeholder="you@college.edu">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+          <input type="password" name="password" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500" placeholder="••••••••">
+        </div>
+        <button type="submit" class="w-full bg-slate-800 text-white py-2 rounded text-sm font-medium hover:bg-slate-700 transition">Login</button>
+      </form>
+      <div class="mt-4 text-center">
+        <a href="/auth/reset-password" class="text-xs text-slate-400 hover:text-slate-600">Forgot password?</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

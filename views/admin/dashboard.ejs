@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
+    <p class="text-xs text-slate-500 uppercase tracking-wide">Teachers</p>
+    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.teachers %></p>
+  </div>
+  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
+    <p class="text-xs text-slate-500 uppercase tracking-wide">Classes</p>
+    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.classes %></p>
+  </div>
+  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
+    <p class="text-xs text-slate-500 uppercase tracking-wide">Students</p>
+    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.students %></p>
+  </div>
+  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
+    <p class="text-xs text-slate-500 uppercase tracking-wide">Today's Attendance</p>
+    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.todayAtt %></p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-600 mb-3">Quick Actions</h3>
+    <div class="space-y-2">
+      <a href="/admin/students" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Manage Students</a>
+      <a href="/admin/attendance" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">View Attendance</a>
+      <a href="/admin/reports" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Download Reports</a>
+    </div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-600 mb-3">System Info</h3>
+    <div class="space-y-2 text-sm text-slate-600">
+      <div class="flex justify-between"><span>Attendance Window</span><span class="font-medium"><%= process.env.ATTENDANCE_START %> - <%= process.env.ATTENDANCE_END %></span></div>
+      <div class="flex justify-between"><span>WhatsApp</span><span class="font-medium"><%= process.env.WA_ENABLED === 'true' ? 'Enabled' : 'Disabled' %></span></div>
+      <div class="flex justify-between"><span>College</span><span class="font-medium text-right text-xs"><%= process.env.COLLEGE_NAME %></span></div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

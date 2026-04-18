@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+
+<div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100 mb-6">
+  <form method="GET" action="/teacher/records" class="flex flex-wrap gap-4 items-end">
+    <div>
+      <label class="block text-xs font-medium text-slate-600 mb-1">Class</label>
+      <select name="classId" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+        <option value="">Select Class</option>
+        <% classes.forEach(c => { %><option value="<%= c._id %>" <%= selectedClass == c._id.toString() ? 'selected' : '' %>><%= c.name %></option><% }) %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-slate-600 mb-1">From</label>
+      <input type="date" name="dateFrom" value="<%= dateFrom || '' %>" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-slate-600 mb-1">To</label>
+      <input type="date" name="dateTo" value="<%= dateTo || '' %>" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+    </div>
+    <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-700">Filter</button>
+  </form>
+</div>
+
+<% if (records.length === 0) { %>
+  <div class="bg-white rounded-lg p-8 text-center text-slate-400 shadow-sm border border-slate-100">
+    <p class="text-sm">No records found. Select a class and date range.</p>
+  </div>
+<% } %>
+
+<% records.forEach(att => { %>
+  <div class="bg-white rounded-lg shadow-sm border border-slate-100 mb-4 overflow-hidden">
+    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between">
+      <span class="font-medium text-slate-700 text-sm"><%= new Date(att.date).toDateString() %></span>
+      <span class="text-xs text-slate-500">
+        Present: <%= att.records.filter(r => r.status === 'present').length %> |
+        Absent: <%= att.records.filter(r => r.status === 'absent').length %>
+      </span>
+    </div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-100 bg-slate-50">
+          <th class="text-left px-4 py-2 font-semibold text-slate-600">Roll No</th>
+          <th class="text-left px-4 py-2 font-semibold text-slate-600">Name</th>
+          <th class="text-left px-4 py-2 font-semibold text-slate-600">Status</th>
+          <th class="text-left px-4 py-2 font-semibold text-slate-600">WhatsApp</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% att.records.sort((a,b)=>(a.student?.rollNumber||'').localeCompare(b.student?.rollNumber||'',undefined,{numeric:true})).forEach(r => { %>
+          <tr class="border-b border-slate-100 <%= r.status === 'absent' ? 'bg-red-50' : '' %>">
+            <td class="px-4 py-2 font-mono text-slate-600"><%= r.student ? r.student.rollNumber : '-' %></td>
+            <td class="px-4 py-2 text-slate-700"><%= r.student ? r.student.name : 'Deleted' %></td>
+            <td class="px-4 py-2">
+              <span class="text-xs px-2 py-1 rounded <%= r.status === 'present' ? 'badge-present' : 'badge-absent' %>">
+                <%= r.status.toUpperCase() %>
+              </span>
+            </td>
+            <td class="px-4 py-2">
+              <% if (r.status === 'absent' && r.student) { %>
+                <a href="https://wa.me/<%= r.student.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C%0AYour+child+<%= encodeURIComponent(r.student.name) %>+(Roll+No%3A+<%= r.student.rollNumber %>)+is+ABSENT+on+<%= new Date(att.date).toDateString() %>.%0A-+<%= encodeURIComponent(process.env.COLLEGE_NAME) %>"
+                  target="_blank" class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100">
+                  Send WA
+                </a>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% }) %>
+
+<%- include('../partials/footer') %>

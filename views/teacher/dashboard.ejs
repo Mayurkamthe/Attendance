@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-600 mb-4">Your Assigned Classes</h3>
+    <% if (classes.length === 0) { %>
+      <p class="text-sm text-slate-400">No classes assigned. Contact admin.</p>
+    <% } %>
+    <% classes.forEach(cls => { %>
+      <div class="border border-slate-200 rounded p-3 mb-3 flex justify-between items-center">
+        <div>
+          <p class="font-medium text-slate-700 text-sm"><%= cls.name %></p>
+          <p class="text-xs text-slate-500"><%= cls.year %><%= cls.department ? ' - ' + cls.department : '' %></p>
+        </div>
+        <a href="/teacher/attendance?classId=<%= cls._id %>" class="text-xs bg-slate-800 text-white px-3 py-1 rounded hover:bg-slate-700">
+          Mark Attendance
+        </a>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-600 mb-4">Quick Links</h3>
+    <div class="space-y-2">
+      <a href="/teacher/attendance" class="block text-sm text-slate-700 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Mark Today's Attendance</a>
+      <a href="/teacher/records" class="block text-sm text-slate-700 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">View Past Records</a>
+    </div>
+    <div class="mt-4 pt-4 border-t border-slate-100">
+      <p class="text-xs text-slate-400">Attendance Window</p>
+      <p class="text-sm font-medium text-slate-700 mt-1"><%= process.env.ATTENDANCE_START %> - <%= process.env.ATTENDANCE_END %></p>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

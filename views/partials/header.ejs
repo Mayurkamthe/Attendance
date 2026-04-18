@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | <%= collegeName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="flex h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-slate-800 text-white flex flex-col flex-shrink-0">
+    <div class="px-6 py-5 border-b border-slate-700">
+      <h1 class="text-sm font-bold leading-tight text-slate-200"><%= collegeName %></h1>
+      <p class="text-xs text-slate-400 mt-1">Attendance System</p>
+    </div>
+    <nav class="flex-1 px-3 py-4 overflow-y-auto space-y-1">
+      <% if (user.role === 'admin') { %>
+        <a href="/admin/dashboard" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Dashboard
+        </a>
+        <a href="/admin/classes" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Classes
+        </a>
+        <a href="/admin/teachers" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Teachers
+        </a>
+        <a href="/admin/students" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Students
+        </a>
+        <a href="/admin/attendance" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Attendance
+        </a>
+        <a href="/admin/reports" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Reports
+        </a>
+      <% } else { %>
+        <a href="/teacher/dashboard" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Dashboard
+        </a>
+        <a href="/teacher/attendance" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> Mark Attendance
+        </a>
+        <a href="/teacher/records" class="sidebar-link flex items-center px-3 py-2 rounded text-sm text-slate-200 hover:bg-slate-700 transition">
+          <span class="mr-3">&#9632;</span> View Records
+        </a>
+      <% } %>
+    </nav>
+    <div class="px-4 py-4 border-t border-slate-700">
+      <p class="text-xs text-slate-400 truncate"><%= user.name %></p>
+      <p class="text-xs text-slate-500 capitalize"><%= user.role %></p>
+      <a href="/auth/logout" class="mt-2 block text-xs text-red-400 hover:text-red-300">Logout</a>
+    </div>
+  </aside>
+  <!-- Main content -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="px-8 py-6">
+      <h2 class="text-xl font-semibold text-slate-700 mb-5"><%= title %></h2>
+      <% if (typeof error !== 'undefined' && error && error.length) { %>
+        <div class="flash-error p-3 rounded mb-4 text-sm"><%= error %></div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success && success.length) { %>
+        <div class="flash-success p-3 rounded mb-4 text-sm"><%= success %></div>
+      <% } %>

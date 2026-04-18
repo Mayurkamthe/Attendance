@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Daily Report -->
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-700 mb-1">Daily Report</h3>
+    <p class="text-xs text-slate-400 mb-4">Download Present/Absent list for a specific date</p>
+    <form action="/admin/reports/daily" method="GET" class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Class</label>
+        <select name="classId" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+          <option value="">Select Class</option>
+          <% classes.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
+        <input type="date" name="date" required value="<%= new Date().toISOString().split('T')[0] %>"
+          class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+      </div>
+      <button type="submit" class="w-full bg-green-700 text-white py-2 rounded text-sm font-medium hover:bg-green-800 transition">
+        Download Daily Excel
+      </button>
+    </form>
+  </div>
+
+  <!-- Monthly Report -->
+  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
+    <h3 class="text-sm font-semibold text-slate-700 mb-1">Monthly Report</h3>
+    <p class="text-xs text-slate-400 mb-4">Full matrix with P/A per day and attendance percentage</p>
+    <form action="/admin/reports/monthly" method="GET" class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Class</label>
+        <select name="classId" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+          <option value="">Select Class</option>
+          <% classes.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Month</label>
+          <select name="month" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+            <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m, i) => { %>
+              <option value="<%= i+1 %>" <%= new Date().getMonth() === i ? 'selected' : '' %>><%= m %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>
+          <input type="number" name="year" required value="<%= new Date().getFullYear() %>" min="2020" max="2099"
+            class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-blue-700 text-white py-2 rounded text-sm font-medium hover:bg-blue-800 transition">
+        Download Monthly Excel
+      </button>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
