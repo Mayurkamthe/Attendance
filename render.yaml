@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: attendance-system
+    runtime: node
+    region: singapore
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: COLLEGE_NAME
+        sync: false
+      - key: COLLEGE_ADDRESS
+        sync: false
+      - key: COLLEGE_PHONE
+        sync: false
+      - key: COLLEGE_EMAIL
+        sync: false
+      - key: WA_ENABLED
+        value: false
+      - key: ATTENDANCE_START
+        value: "08:00"
+      - key: ATTENDANCE_END
+        value: "18:00"
