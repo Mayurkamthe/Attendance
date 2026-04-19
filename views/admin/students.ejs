@@ -56,7 +56,7 @@
                 <td class="text-gray-500 text-xs"><%= s.class ? s.class.name : '—' %></td>
                 <td>
                   <div class="flex gap-2">
-                    <button onclick="openEdit('<%= s._id %>','<%= s.name.replace(/'/g,\\'') %>','<%= s.rollNumber %>','<%= s.parentPhone %>')"
+                    <button onclick="openEdit(this)" data-id="<%= s._id %>" data-name="<%= encodeURIComponent(s.name) %>" data-roll="<%= s.rollNumber %>" data-phone="<%= s.parentPhone %>"
                       class="btn-primary btn-sm">Edit</button>
                     <form action="/admin/students/<%= s._id %>/delete" method="POST" onsubmit="return confirm('Delete this student?')" style="display:inline">
                       <button class="btn-secondary btn-sm" style="background:#fee2e2;color:#991b1b;border:none">Delete</button>
@@ -87,7 +87,8 @@
   </div>
 </div>
 <script>
-function openEdit(id,name,roll,phone){
+function openEdit(btn){
+  var id=btn.dataset.id, name=decodeURIComponent(btn.dataset.name), roll=btn.dataset.roll, phone=btn.dataset.phone;
   document.getElementById('editStudentForm').action='/admin/students/'+id+'/update';
   document.getElementById('esName').value=name;
   document.getElementById('esRoll').value=roll;
