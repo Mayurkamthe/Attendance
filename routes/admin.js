@@ -22,9 +22,10 @@ router.post('/teachers/:id/update', admin.updateTeacher);
 
 router.get('/students', admin.getStudents);
 router.post('/students', admin.createStudent);
+// bulk-upload MUST be before /:id routes to avoid conflict
+router.post('/students/bulk-upload', upload.single('file'), admin.bulkUpload);
 router.post('/students/:id/update', admin.updateStudent);
 router.post('/students/:id/delete', admin.deleteStudent);
-router.post('/students/bulk-upload', upload.single('file'), admin.bulkUpload);
 
 router.get('/attendance', admin.getAttendance);
 router.post('/attendance/edit', admin.editAttendance);
