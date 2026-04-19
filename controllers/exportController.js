@@ -3,7 +3,91 @@ const Student = require('../models/Student');
 const Attendance = require('../models/Attendance');
 const Class = require('../models/Class');
 
-exports.dailyReport = async (req, res) => {
+exports.bulkImportTemplate = async (req, res) => {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = process.env.COLLEGE_NAME || 'Attendance System';
+
+  // Instructions sheet
+  const infoWs = wb.addWorksheet('Instructions');
+  infoWs.getColumn('A').width = 60;
+  const titleRow = infoWs.addRow(['Bulk Student Import Template']);
+  titleRow.getCell(1).font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+  titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A3080' } };
+  titleRow.getCell(1).alignment = { horizontal: 'center' };
+  infoWs.mergeCells('A1:C1');
+  infoWs.addRow([]);
+  const rules = [
+    ['Column', 'Description', 'Example'],
+    ['Name', 'Full name of the student (required)', 'Rahul Sharma'],
+    ['Roll Number', 'Unique roll number within the class (required)', 'CS-101'],
+    ['Parent Phone', 'Parent/guardian phone number (required)', '+919876543210'],
+  ];
+  rules.forEach((row, i) => {
+    const r = infoWs.addRow(row);
+    if (i === 0) {
+      r.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      r.eachCell(c => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2340A8' } }; });
+    }
+    r.eachCell(c => { c.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} }; });
+  });
+  infoWs.getColumn('A').width = 20;
+  infoWs.getColumn('B').width = 44;
+  infoWs.getColumn('C').width = 22;
+  infoWs.addRow([]);
+  infoWs.addRow(['Notes:']).getCell(1).font = { bold: true };
+  ['Do NOT change column headers.', 'Roll Number must be unique per class.', 'Rows with missing fields will be skipped.', 'Phone format: +91XXXXXXXXXX or 10-digit number.'].forEach(note => {
+    const nr = infoWs.addRow(['• ' + note]);
+    nr.getCell(1).font = { color: { argb: 'FF4B5563' } };
+  });
+
+  // Data sheet
+  const ws = wb.addWorksheet('Students');
+  const headerRow = ws.addRow(['Name', 'Roll Number', 'Parent Phone']);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Arial', size: 11 };
+  headerRow.eachCell(cell => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A3080' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = { bottom: { style: 'medium', color: { argb: 'FF3B5BDB' } } };
+  });
+  headerRow.height = 22;
+
+  // 5 sample rows (grey, to be replaced)
+  const samples = [
+    ['Rahul Sharma', 'CS-101', '+919876543210'],
+    ['Priya Patel', 'CS-102', '+919876543211'],
+    ['Amir Khan', 'CS-103', '+919876543212'],
+  ];
+  samples.forEach(sample => {
+    const r = ws.addRow(sample);
+    r.eachCell(c => {
+      c.font = { color: { argb: 'FF9CA3AF' }, name: 'Arial', size: 10 };
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+    });
+  });
+
+  // Empty rows for actual data
+  for (let i = 0; i < 47; i++) {
+    const r = ws.addRow(['', '', '']);
+    r.eachCell(c => {
+      c.border = { bottom: { style: 'hair', color: { argb: 'FFE5E7EB' } } };
+      c.font = { name: 'Arial', size: 10 };
+    });
+  }
+
+  ws.getColumn('A').width = 28;
+  ws.getColumn('B').width = 18;
+  ws.getColumn('C').width = 20;
+  ws.views = [{ state: 'frozen', ySplit: 1 }];
+
+  // Make instructions the active sheet shown first
+  wb.views = [{ activeTab: 1 }];
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=bulk_import_template.xlsx');
+  await wb.xlsx.write(res);
+  res.end();
+};
+
   const { classId, date } = req.query;
   const cls = await Class.findById(classId);
   const d = new Date(date);

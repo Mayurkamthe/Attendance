@@ -9,10 +9,20 @@
         <div><label>Class Name</label><input type="text" name="name" required class="form-input" placeholder="e.g. FY-A Computer"></div>
         <div>
           <label>Year</label>
-          <select name="year" required class="form-input">
+          <select name="year" required class="form-input" id="addYearSelect" onchange="toggleCustomYear('add')">
             <option value="">Select Year</option>
-            <option value="FY">FY</option><option value="SY">SY</option><option value="TE">TE</option><option value="BE">BE</option><option value="Other">Other</option>
+            <option value="FY">FY (First Year)</option>
+            <option value="SY">SY (Second Year)</option>
+            <option value="TE">TE (Third Year)</option>
+            <option value="BE">BE (Final Year)</option>
+            <option value="11th">11th Standard</option>
+            <option value="12th">12th Standard</option>
+            <option value="Other">Other / Custom</option>
           </select>
+        </div>
+        <div id="addCustomYearWrap" style="display:none;">
+          <label>Custom Year Label</label>
+          <input type="text" name="customYear" id="addCustomYear" class="form-input" placeholder="e.g. Diploma 2nd, MBA 1st">
         </div>
         <div><label>Division</label><input type="text" name="division" class="form-input" placeholder="A / B / C"></div>
         <div><label>Department</label><input type="text" name="department" class="form-input" placeholder="Computer / Civil..."></div>
@@ -46,12 +56,23 @@
             <% classes.forEach(cls => { %>
               <tr>
                 <td class="font-medium text-gray-800"><%= cls.name %></td>
-                <td><span class="badge-present"><%= cls.year %></span></td>
+                <td>
+                  <span class="badge-present">
+                    <%= cls.year === 'Other' && cls.customYear ? cls.customYear : cls.year %>
+                  </span>
+                </td>
                 <td class="text-gray-500"><%= cls.department || '—' %></td>
                 <td class="text-gray-500"><%= cls.classTeacher ? cls.classTeacher.name : '—' %></td>
                 <td>
                   <div class="flex gap-2">
-                    <button onclick="openEdit('<%= cls._id %>','<%= cls.name %>','<%= cls.year %>','<%= cls.division||'' %>','<%= cls.department||'' %>','<%= cls.classTeacher ? cls.classTeacher._id : '' %>')"
+                    <button onclick="openEdit(this)"
+                      data-id="<%= cls._id %>"
+                      data-name="<%= encodeURIComponent(cls.name) %>"
+                      data-year="<%= cls.year %>"
+                      data-customyear="<%= encodeURIComponent(cls.customYear || '') %>"
+                      data-div="<%= encodeURIComponent(cls.division || '') %>"
+                      data-dept="<%= encodeURIComponent(cls.department || '') %>"
+                      data-teacher="<%= cls.classTeacher ? cls.classTeacher._id : '' %>"
                       class="btn-primary btn-sm">Edit</button>
                     <form action="/admin/classes/<%= cls._id %>/delete" method="POST" onsubmit="return confirm('Delete this class?')" style="display:inline">
                       <button type="submit" class="btn-secondary btn-sm" style="background:#fee2e2;color:#991b1b;border:none">Delete</button>
@@ -73,14 +94,26 @@
     <h3 class="text-base font-semibold text-gray-800 mb-4">Edit Class</h3>
     <form id="editForm" method="POST" class="space-y-3">
       <div><label>Class Name</label><input type="text" name="name" id="editName" required class="form-input"></div>
-      <div><label>Year</label>
-        <select name="year" id="editYear" class="form-input">
-          <option value="FY">FY</option><option value="SY">SY</option><option value="TE">TE</option><option value="BE">BE</option><option value="Other">Other</option>
+      <div>
+        <label>Year</label>
+        <select name="year" id="editYear" class="form-input" onchange="toggleCustomYear('edit')">
+          <option value="FY">FY (First Year)</option>
+          <option value="SY">SY (Second Year)</option>
+          <option value="TE">TE (Third Year)</option>
+          <option value="BE">BE (Final Year)</option>
+          <option value="11th">11th Standard</option>
+          <option value="12th">12th Standard</option>
+          <option value="Other">Other / Custom</option>
         </select>
+      </div>
+      <div id="editCustomYearWrap" style="display:none;">
+        <label>Custom Year Label</label>
+        <input type="text" name="customYear" id="editCustomYear" class="form-input" placeholder="e.g. Diploma 2nd, MBA 1st">
       </div>
       <div><label>Division</label><input type="text" name="division" id="editDiv" class="form-input"></div>
       <div><label>Department</label><input type="text" name="department" id="editDept" class="form-input"></div>
-      <div><label>Class Teacher</label>
+      <div>
+        <label>Class Teacher</label>
         <select name="classTeacher" id="editTeacher" class="form-input">
           <option value="">None</option>
           <% teachers.forEach(t => { %><option value="<%= t._id %>"><%= t.name %></option><% }) %>
@@ -93,16 +126,36 @@
     </form>
   </div>
 </div>
+
 <script>
-function openEdit(id, name, year, div, dept, teacher) {
+function toggleCustomYear(prefix) {
+  const sel = document.getElementById(prefix + 'YearSelect') || document.getElementById(prefix + 'Year');
+  const wrap = document.getElementById(prefix + 'CustomYearWrap');
+  if (wrap) wrap.style.display = sel.value === 'Other' ? '' : 'none';
+  const inp = document.getElementById(prefix + 'CustomYear');
+  if (inp) inp.required = sel.value === 'Other';
+}
+
+function openEdit(btn) {
+  const id         = btn.dataset.id;
+  const name       = decodeURIComponent(btn.dataset.name);
+  const year       = btn.dataset.year;
+  const customYear = decodeURIComponent(btn.dataset.customyear || '');
+  const div        = decodeURIComponent(btn.dataset.div || '');
+  const dept       = decodeURIComponent(btn.dataset.dept || '');
+  const teacher    = btn.dataset.teacher;
+
   document.getElementById('editForm').action = '/admin/classes/' + id + '/update';
-  document.getElementById('editName').value = name;
-  document.getElementById('editYear').value = year;
-  document.getElementById('editDiv').value = div;
-  document.getElementById('editDept').value = dept;
+  document.getElementById('editName').value    = name;
+  document.getElementById('editYear').value    = year;
+  document.getElementById('editDiv').value     = div;
+  document.getElementById('editDept').value    = dept;
   document.getElementById('editTeacher').value = teacher;
+  document.getElementById('editCustomYear').value = customYear;
+  toggleCustomYear('edit');
   document.getElementById('editModal').classList.remove('hidden');
 }
+
 document.getElementById('editModal').addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); });
 </script>
 <%- include('../partials/footer') %>

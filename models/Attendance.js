@@ -7,12 +7,13 @@ const attendanceRecordSchema = new mongoose.Schema({
 
 const attendanceSchema = new mongoose.Schema({
   class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
+  subject: { type: String, trim: true, default: '' },
   date: { type: Date, required: true },
   markedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   records: [attendanceRecordSchema],
   isLocked: { type: Boolean, default: false }
 }, { timestamps: true });
 
-attendanceSchema.index({ class: 1, date: 1 }, { unique: true });
+attendanceSchema.index({ class: 1, date: 1, subject: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);

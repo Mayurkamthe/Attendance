@@ -16,6 +16,10 @@
           <label>Date</label>
           <input type="date" name="date" value="<%= selectedDate %>" class="form-input">
         </div>
+        <div>
+          <label>Subject <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+          <input type="text" name="subject" value="<%= selectedSubject %>" class="form-input" placeholder="e.g. Mathematics, Physics">
+        </div>
         <button type="submit" class="btn-primary w-full">Load Students</button>
       </form>
     </div>
@@ -39,11 +43,13 @@
       <form action="/teacher/attendance" method="POST">
         <input type="hidden" name="classId" value="<%= selectedClass %>">
         <input type="hidden" name="date" value="<%= selectedDate %>">
+        <input type="hidden" name="subject" value="<%= selectedSubject %>">
         <div class="card overflow-hidden">
           <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
             <div>
               <span class="font-semibold text-gray-800 text-sm"><%= students.length %> Students</span>
               <span class="text-xs text-gray-500 ml-2"><%= selectedDate %></span>
+              <% if (selectedSubject) { %><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2 font-medium"><%= selectedSubject %></span><% } %>
             </div>
             <div class="flex gap-2">
               <button type="button" onclick="markAll('present')" class="btn-primary btn-sm" style="background:#15803d">All Present</button>

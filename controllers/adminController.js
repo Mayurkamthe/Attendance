@@ -32,8 +32,8 @@ exports.getClasses = async (req, res) => {
 
 exports.createClass = async (req, res) => {
   try {
-    const { name, year, division, department, classTeacher } = req.body;
-    await Class.create({ name, year, division, department, classTeacher: classTeacher || undefined });
+    const { name, year, customYear, division, department, classTeacher } = req.body;
+    await Class.create({ name, year, customYear: year === 'Other' ? customYear : undefined, division, department, classTeacher: classTeacher || undefined });
     req.flash('success', 'Class created successfully');
   } catch (e) {
     req.flash('error', 'Failed to create class: ' + e.message);
@@ -43,8 +43,8 @@ exports.createClass = async (req, res) => {
 
 exports.updateClass = async (req, res) => {
   try {
-    const { name, year, division, department, classTeacher } = req.body;
-    await Class.findByIdAndUpdate(req.params.id, { name, year, division, department, classTeacher: classTeacher || null });
+    const { name, year, customYear, division, department, classTeacher } = req.body;
+    await Class.findByIdAndUpdate(req.params.id, { name, year, customYear: year === 'Other' ? customYear : '', division, department, classTeacher: classTeacher || null });
     req.flash('success', 'Class updated');
   } catch (e) {
     req.flash('error', 'Update failed: ' + e.message);

@@ -33,5 +33,6 @@ router.post('/attendance/edit', admin.editAttendance);
 router.get('/reports', admin.getReports);
 router.get('/reports/daily', exp.dailyReport);
 router.get('/reports/monthly', exp.monthlyReport);
+router.get('/students/import-template', exp.bulkImportTemplate);
 
 module.exports = router;

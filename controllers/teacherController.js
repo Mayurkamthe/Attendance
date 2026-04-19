@@ -8,23 +8,25 @@ exports.getDashboard = async (req, res) => {
 };
 
 exports.getMarkAttendance = async (req, res) => {
-  const { classId, date } = req.query;
+  const { classId, date, subject } = req.query;
   const classes = await Class.find({ _id: { $in: req.user.assignedClasses } });
   let students = [], existing = null, selectedDate = date || new Date().toISOString().split('T')[0];
   if (classId) {
     students = await Student.find({ class: classId, isActive: true }).sort({ rollNumber: 1 });
     const d = new Date(selectedDate);
-    existing = await Attendance.findOne({
+    const query = {
       class: classId,
-      date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) }
-    }).populate('records.student');
+      date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) },
+      subject: subject || ''
+    };
+    existing = await Attendance.findOne(query).populate('records.student');
   }
-  res.render('teacher/mark-attendance', { title: 'Mark Attendance', classes, students, existing, selectedClass: classId, selectedDate, error: req.flash('error'), success: req.flash('success') });
+  res.render('teacher/mark-attendance', { title: 'Mark Attendance', classes, students, existing, selectedClass: classId, selectedDate, selectedSubject: subject || '', error: req.flash('error'), success: req.flash('success') });
 };
 
 exports.postMarkAttendance = async (req, res) => {
   try {
-    const { classId, date, statuses } = req.body;
+    const { classId, date, subject, statuses } = req.body;
     const d = new Date(date);
 
     // Check time window
@@ -35,20 +37,21 @@ exports.postMarkAttendance = async (req, res) => {
     const cur = now.getHours() * 60 + now.getMinutes();
     if (cur < start || cur > end) {
       req.flash('error', `Attendance can only be marked between ${process.env.ATTENDANCE_START} and ${process.env.ATTENDANCE_END}`);
-      return res.redirect('/teacher/attendance?classId=' + classId + '&date=' + date);
+      return res.redirect('/teacher/attendance?classId=' + classId + '&date=' + date + (subject ? '&subject=' + encodeURIComponent(subject) : ''));
     }
 
     const records = Object.entries(statuses || {}).map(([studentId, status]) => ({ student: studentId, status }));
+    const subjectVal = subject || '';
     await Attendance.findOneAndUpdate(
-      { class: classId, date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) } },
-      { class: classId, date: new Date(date), markedBy: req.user._id, records },
+      { class: classId, date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) }, subject: subjectVal },
+      { class: classId, date: new Date(date), subject: subjectVal, markedBy: req.user._id, records },
       { upsert: true, new: true }
     );
-    req.flash('success', 'Attendance saved');
+    req.flash('success', 'Attendance saved' + (subjectVal ? ' for ' + subjectVal : ''));
   } catch (e) {
     req.flash('error', 'Failed: ' + e.message);
   }
-  res.redirect('/teacher/attendance?classId=' + req.body.classId + '&date=' + req.body.date);
+  res.redirect('/teacher/attendance?classId=' + req.body.classId + '&date=' + req.body.date + (req.body.subject ? '&subject=' + encodeURIComponent(req.body.subject) : ''));
 };
 
 exports.getViewAttendance = async (req, res) => {
