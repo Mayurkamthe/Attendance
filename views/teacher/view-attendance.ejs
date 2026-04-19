@@ -1,72 +1,58 @@
 <%- include('../partials/header') %>
 
-<div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100 mb-6">
-  <form method="GET" action="/teacher/records" class="flex flex-wrap gap-4 items-end">
+<div class="card p-5 mb-6">
+  <form method="GET" action="/teacher/records" class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
     <div>
-      <label class="block text-xs font-medium text-slate-600 mb-1">Class</label>
-      <select name="classId" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+      <label>Class</label>
+      <select name="classId" class="form-input">
         <option value="">Select Class</option>
-        <% classes.forEach(c => { %><option value="<%= c._id %>" <%= selectedClass == c._id.toString() ? 'selected' : '' %>><%= c.name %></option><% }) %>
+        <% classes.forEach(c => { %><option value="<%= c._id %>" <%= selectedClass==c._id.toString()?'selected':'' %>><%= c.name %></option><% }) %>
       </select>
     </div>
-    <div>
-      <label class="block text-xs font-medium text-slate-600 mb-1">From</label>
-      <input type="date" name="dateFrom" value="<%= dateFrom || '' %>" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-slate-600 mb-1">To</label>
-      <input type="date" name="dateTo" value="<%= dateTo || '' %>" class="border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-    </div>
-    <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-slate-700">Filter</button>
+    <div><label>From</label><input type="date" name="dateFrom" value="<%= dateFrom||'' %>" class="form-input"></div>
+    <div><label>To</label><input type="date" name="dateTo" value="<%= dateTo||'' %>" class="form-input"></div>
+    <div><button type="submit" class="btn-primary w-full">Filter</button></div>
   </form>
 </div>
 
-<% if (records.length === 0) { %>
-  <div class="bg-white rounded-lg p-8 text-center text-slate-400 shadow-sm border border-slate-100">
-    <p class="text-sm">No records found. Select a class and date range.</p>
+<% if (!records.length) { %>
+  <div class="card p-10 text-center text-gray-400">
+    <p class="text-sm">Select a class and date range to view records</p>
   </div>
 <% } %>
 
-<% records.forEach(att => { %>
-  <div class="bg-white rounded-lg shadow-sm border border-slate-100 mb-4 overflow-hidden">
-    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between">
-      <span class="font-medium text-slate-700 text-sm"><%= new Date(att.date).toDateString() %></span>
-      <span class="text-xs text-slate-500">
-        Present: <%= att.records.filter(r => r.status === 'present').length %> |
-        Absent: <%= att.records.filter(r => r.status === 'absent').length %>
-      </span>
+<% records.forEach(att => {
+  const present=att.records.filter(r=>r.status==='present').length;
+  const absent=att.records.filter(r=>r.status==='absent').length;
+%>
+  <div class="card mb-4 overflow-hidden">
+    <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+      <span class="font-semibold text-gray-800 text-sm"><%= new Date(att.date).toDateString() %></span>
+      <div class="flex gap-2 text-xs">
+        <span class="badge-present">P: <%= present %></span>
+        <span class="badge-absent">A: <%= absent %></span>
+      </div>
     </div>
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-slate-100 bg-slate-50">
-          <th class="text-left px-4 py-2 font-semibold text-slate-600">Roll No</th>
-          <th class="text-left px-4 py-2 font-semibold text-slate-600">Name</th>
-          <th class="text-left px-4 py-2 font-semibold text-slate-600">Status</th>
-          <th class="text-left px-4 py-2 font-semibold text-slate-600">WhatsApp</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% att.records.sort((a,b)=>(a.student?.rollNumber||'').localeCompare(b.student?.rollNumber||'',undefined,{numeric:true})).forEach(r => { %>
-          <tr class="border-b border-slate-100 <%= r.status === 'absent' ? 'bg-red-50' : '' %>">
-            <td class="px-4 py-2 font-mono text-slate-600"><%= r.student ? r.student.rollNumber : '-' %></td>
-            <td class="px-4 py-2 text-slate-700"><%= r.student ? r.student.name : 'Deleted' %></td>
-            <td class="px-4 py-2">
-              <span class="text-xs px-2 py-1 rounded <%= r.status === 'present' ? 'badge-present' : 'badge-absent' %>">
-                <%= r.status.toUpperCase() %>
-              </span>
-            </td>
-            <td class="px-4 py-2">
-              <% if (r.status === 'absent' && r.student) { %>
-                <a href="https://wa.me/<%= r.student.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C%0AYour+child+<%= encodeURIComponent(r.student.name) %>+(Roll+No%3A+<%= r.student.rollNumber %>)+is+ABSENT+on+<%= new Date(att.date).toDateString() %>.%0A-+<%= encodeURIComponent(process.env.COLLEGE_NAME) %>"
-                  target="_blank" class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100">
-                  Send WA
-                </a>
-              <% } %>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll No</th><th>Name</th><th>Status</th><th>WhatsApp</th></tr></thead>
+        <tbody>
+          <% att.records.sort((a,b)=>(a.student?.rollNumber||'').localeCompare(b.student?.rollNumber||'',undefined,{numeric:true})).forEach(r=>{ %>
+            <tr class="<%= r.status==='absent'?'bg-red-50':'' %>">
+              <td class="font-mono text-gray-700"><%= r.student?r.student.rollNumber:'—' %></td>
+              <td class="font-medium text-gray-800"><%= r.student?r.student.name:'Deleted' %></td>
+              <td><span class="<%= r.status==='present'?'badge-present':'badge-absent' %>"><%= r.status.toUpperCase() %></span></td>
+              <td>
+                <% if (r.status==='absent'&&r.student) { %>
+                  <a href="https://wa.me/<%= r.student.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(r.student.name) %>+is+ABSENT+on+<%= new Date(att.date).toDateString() %>.+-+<%= encodeURIComponent(collegeName) %>"
+                    target="_blank" class="btn-primary btn-sm" style="background:#15803d">Send WA</a>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
 <% }) %>
 

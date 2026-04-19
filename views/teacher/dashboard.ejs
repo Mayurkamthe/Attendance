@@ -1,33 +1,46 @@
 <%- include('../partials/header') %>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-    <h3 class="text-sm font-semibold text-slate-600 mb-4">Your Assigned Classes</h3>
-    <% if (classes.length === 0) { %>
-      <p class="text-sm text-slate-400">No classes assigned. Contact admin.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+  <div class="card p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-4">Your Classes</h3>
+    <% if (!classes.length) { %>
+      <div class="text-center py-6 text-gray-400">
+        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16"/></svg>
+        <p class="text-sm">No classes assigned. Contact admin.</p>
+      </div>
     <% } %>
     <% classes.forEach(cls => { %>
-      <div class="border border-slate-200 rounded p-3 mb-3 flex justify-between items-center">
+      <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 mb-2 hover:bg-blue-50 transition-all">
         <div>
-          <p class="font-medium text-slate-700 text-sm"><%= cls.name %></p>
-          <p class="text-xs text-slate-500"><%= cls.year %><%= cls.department ? ' - ' + cls.department : '' %></p>
+          <p class="font-semibold text-gray-800 text-sm"><%= cls.name %></p>
+          <p class="text-xs text-gray-500"><%= cls.year %><%= cls.department ? ' — ' + cls.department : '' %></p>
         </div>
-        <a href="/teacher/attendance?classId=<%= cls._id %>" class="text-xs bg-slate-800 text-white px-3 py-1 rounded hover:bg-slate-700">
-          Mark Attendance
-        </a>
+        <a href="/teacher/attendance?classId=<%= cls._id %>" class="btn-primary btn-sm">Mark</a>
       </div>
     <% }) %>
   </div>
 
-  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-    <h3 class="text-sm font-semibold text-slate-600 mb-4">Quick Links</h3>
-    <div class="space-y-2">
-      <a href="/teacher/attendance" class="block text-sm text-slate-700 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Mark Today's Attendance</a>
-      <a href="/teacher/records" class="block text-sm text-slate-700 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">View Past Records</a>
+  <div class="space-y-4">
+    <div class="card p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Quick Links</h3>
+      <div class="space-y-2">
+        <a href="/teacher/attendance" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition-all text-sm text-gray-700 group">
+          <span>Mark Today's Attendance</span>
+          <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a href="/teacher/records" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition-all text-sm text-gray-700 group">
+          <span>View Past Records</span>
+          <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
     </div>
-    <div class="mt-4 pt-4 border-t border-slate-100">
-      <p class="text-xs text-slate-400">Attendance Window</p>
-      <p class="text-sm font-medium text-slate-700 mt-1"><%= process.env.ATTENDANCE_START %> - <%= process.env.ATTENDANCE_END %></p>
+    <div class="card p-5">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">System Info</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-gray-500">College</span><span class="font-medium text-gray-800 text-right max-w-[55%] text-xs"><%= collegeName %></span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Attendance Window</span><span class="font-semibold text-blue-700"><%= attStart %> – <%= attEnd %></span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Today</span><span class="font-medium text-gray-800"><%= new Date().toDateString() %></span></div>
+      </div>
     </div>
   </div>
 </div>

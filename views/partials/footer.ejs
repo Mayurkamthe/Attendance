@@ -1,10 +1,21 @@
     </div>
   </main>
 </div>
+
 <script>
-  // Mark active sidebar link
-  const links = document.querySelectorAll('.sidebar-link');
-  links.forEach(l => { if (window.location.pathname.startsWith(l.getAttribute('href'))) l.classList.add('active'); });
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+  }
+  // Active nav link
+  document.querySelectorAll('.nav-link').forEach(link => {
+    if (window.location.pathname.startsWith(link.getAttribute('href'))) {
+      link.classList.add('bg-primary-700','text-white');
+      link.classList.remove('text-primary-200');
+    }
+  });
 </script>
 </body>
 </html>

@@ -1,39 +1,78 @@
 <%- include('../partials/header') %>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-    <p class="text-xs text-slate-500 uppercase tracking-wide">Teachers</p>
-    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.teachers %></p>
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Teachers</span>
+      <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-gray-800"><%= stats.teachers %></p>
+    <a href="/admin/teachers" class="text-xs text-blue-600 hover:underline mt-1 block">Manage teachers</a>
   </div>
-  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-    <p class="text-xs text-slate-500 uppercase tracking-wide">Classes</p>
-    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.classes %></p>
+  <div class="stat-card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Classes</span>
+      <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-gray-800"><%= stats.classes %></p>
+    <a href="/admin/classes" class="text-xs text-blue-600 hover:underline mt-1 block">Manage classes</a>
   </div>
-  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-    <p class="text-xs text-slate-500 uppercase tracking-wide">Students</p>
-    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.students %></p>
+  <div class="stat-card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Students</span>
+      <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-gray-800"><%= stats.students %></p>
+    <a href="/admin/students" class="text-xs text-blue-600 hover:underline mt-1 block">Manage students</a>
   </div>
-  <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-    <p class="text-xs text-slate-500 uppercase tracking-wide">Today's Attendance</p>
-    <p class="text-3xl font-bold text-slate-700 mt-1"><%= stats.todayAtt %></p>
+  <div class="stat-card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Today's Records</span>
+      <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+        <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-gray-800"><%= stats.todayAtt %></p>
+    <a href="/admin/attendance" class="text-xs text-blue-600 hover:underline mt-1 block">View attendance</a>
   </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-    <h3 class="text-sm font-semibold text-slate-600 mb-3">Quick Actions</h3>
+<!-- Info cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="card p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-4">Quick Actions</h3>
     <div class="space-y-2">
-      <a href="/admin/students" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Manage Students</a>
-      <a href="/admin/attendance" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">View Attendance</a>
-      <a href="/admin/reports" class="block text-sm text-slate-700 hover:text-slate-900 border border-slate-200 rounded px-3 py-2 hover:bg-slate-50 transition">Download Reports</a>
+      <a href="/admin/students" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 hover:text-blue-700 transition-all text-sm text-gray-700 group">
+        <span>Add / Manage Students</span>
+        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      <a href="/admin/attendance" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 hover:text-blue-700 transition-all text-sm text-gray-700 group">
+        <span>View Attendance</span>
+        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      <a href="/admin/reports" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 hover:text-blue-700 transition-all text-sm text-gray-700 group">
+        <span>Download Reports</span>
+        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
     </div>
   </div>
-  <div class="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-    <h3 class="text-sm font-semibold text-slate-600 mb-3">System Info</h3>
-    <div class="space-y-2 text-sm text-slate-600">
-      <div class="flex justify-between"><span>Attendance Window</span><span class="font-medium"><%= process.env.ATTENDANCE_START %> - <%= process.env.ATTENDANCE_END %></span></div>
-      <div class="flex justify-between"><span>WhatsApp</span><span class="font-medium"><%= process.env.WA_ENABLED === 'true' ? 'Enabled' : 'Disabled' %></span></div>
-      <div class="flex justify-between"><span>College</span><span class="font-medium text-right text-xs"><%= process.env.COLLEGE_NAME %></span></div>
+
+  <div class="card p-5">
+    <h3 class="text-sm font-semibold text-gray-700 mb-4">College Info</h3>
+    <div class="space-y-3">
+      <div class="flex justify-between text-sm"><span class="text-gray-500">Name</span><span class="font-medium text-gray-800 text-right max-w-[60%]"><%= collegeName %></span></div>
+      <% if (collegeAddress) { %><div class="flex justify-between text-sm"><span class="text-gray-500">Address</span><span class="font-medium text-gray-800 text-right max-w-[60%]"><%= collegeAddress %></span></div><% } %>
+      <% if (collegePhone) { %><div class="flex justify-between text-sm"><span class="text-gray-500">Phone</span><span class="font-medium text-gray-800"><%= collegePhone %></span></div><% } %>
+      <% if (collegeEmail) { %><div class="flex justify-between text-sm"><span class="text-gray-500">Email</span><span class="font-medium text-gray-800"><%= collegeEmail %></span></div><% } %>
+      <div class="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2"><span class="text-gray-500">Attendance Window</span><span class="font-semibold text-blue-700"><%= attStart %> – <%= attEnd %></span></div>
+      <div class="flex justify-between text-sm"><span class="text-gray-500">WhatsApp</span><span class="font-medium <%= waEnabled ? 'text-green-600' : 'text-gray-400' %>"><%= waEnabled ? 'Enabled' : 'Disabled' %></span></div>
     </div>
   </div>
 </div>

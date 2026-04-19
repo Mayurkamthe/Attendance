@@ -1,133 +1,108 @@
 <%- include('../partials/header') %>
 
-<div class="flex gap-6">
-  <!-- Add Class Form -->
-  <div class="w-72 flex-shrink-0">
-    <div class="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-      <h3 class="text-sm font-semibold text-slate-600 mb-4">Add New Class</h3>
+<div class="flex flex-col lg:flex-row gap-6">
+  <!-- Add form -->
+  <div class="w-full lg:w-72 flex-shrink-0">
+    <div class="card p-5 sticky top-6">
+      <h3 class="text-sm font-semibold text-gray-700 mb-4">Add New Class</h3>
       <form action="/admin/classes" method="POST" class="space-y-3">
+        <div><label>Class Name</label><input type="text" name="name" required class="form-input" placeholder="e.g. FY-A Computer"></div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Class Name</label>
-          <input type="text" name="name" required placeholder="e.g. FY-A Computer" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>
-          <select name="year" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+          <label>Year</label>
+          <select name="year" required class="form-input">
             <option value="">Select Year</option>
-            <option value="FY">FY</option>
-            <option value="SY">SY</option>
-            <option value="TE">TE</option>
-            <option value="BE">BE</option>
-            <option value="Other">Other</option>
+            <option value="FY">FY</option><option value="SY">SY</option><option value="TE">TE</option><option value="BE">BE</option><option value="Other">Other</option>
           </select>
         </div>
+        <div><label>Division</label><input type="text" name="division" class="form-input" placeholder="A / B / C"></div>
+        <div><label>Department</label><input type="text" name="department" class="form-input" placeholder="Computer / Civil..."></div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Division</label>
-          <input type="text" name="division" placeholder="A / B / C" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Department</label>
-          <input type="text" name="department" placeholder="Computer / Civil..." class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Class Teacher</label>
-          <select name="classTeacher" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+          <label>Class Teacher</label>
+          <select name="classTeacher" class="form-input">
             <option value="">None</option>
-            <% teachers.forEach(t => { %>
-              <option value="<%= t._id %>"><%= t.name %></option>
-            <% }) %>
+            <% teachers.forEach(t => { %><option value="<%= t._id %>"><%= t.name %></option><% }) %>
           </select>
         </div>
-        <button type="submit" class="w-full bg-slate-800 text-white py-2 rounded text-sm font-medium hover:bg-slate-700 transition">Create Class</button>
+        <button type="submit" class="btn-primary w-full">Create Class</button>
       </form>
     </div>
   </div>
 
-  <!-- Classes List -->
-  <div class="flex-1">
-    <div class="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
-      <table class="w-full text-sm table-hover">
-        <thead>
-          <tr class="bg-slate-50 border-b border-slate-200">
-            <th class="text-left px-4 py-3 font-semibold text-slate-600">Class</th>
-            <th class="text-left px-4 py-3 font-semibold text-slate-600">Year</th>
-            <th class="text-left px-4 py-3 font-semibold text-slate-600">Department</th>
-            <th class="text-left px-4 py-3 font-semibold text-slate-600">Class Teacher</th>
-            <th class="text-left px-4 py-3 font-semibold text-slate-600">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (classes.length === 0) { %>
-            <tr><td colspan="5" class="text-center py-8 text-slate-400">No classes added yet</td></tr>
-          <% } %>
-          <% classes.forEach(cls => { %>
-            <tr class="border-b border-slate-100">
-              <td class="px-4 py-3 font-medium text-slate-700"><%= cls.name %></td>
-              <td class="px-4 py-3 text-slate-600"><%= cls.year %></td>
-              <td class="px-4 py-3 text-slate-600"><%= cls.department || '-' %></td>
-              <td class="px-4 py-3 text-slate-600"><%= cls.classTeacher ? cls.classTeacher.name : '-' %></td>
-              <td class="px-4 py-3 flex gap-2">
-                <button onclick="openEdit('<%= cls._id %>', '<%= cls.name %>', '<%= cls.year %>', '<%= cls.division || '' %>', '<%= cls.department || '' %>', '<%= cls.classTeacher ? cls.classTeacher._id : '' %>')"
-                  class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100">Edit</button>
-                <form action="/admin/classes/<%= cls._id %>/delete" method="POST" onsubmit="return confirm('Delete this class?')">
-                  <button type="submit" class="text-xs bg-red-50 text-red-700 px-2 py-1 rounded hover:bg-red-100">Delete</button>
-                </form>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
+  <!-- Table -->
+  <div class="flex-1 min-w-0">
+    <div class="card overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-700">All Classes (<%= classes.length %>)</h3>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Class</th><th>Year</th><th>Department</th><th>Class Teacher</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            <% if (classes.length === 0) { %>
+              <tr><td colspan="5" class="text-center py-10 text-gray-400">No classes added yet</td></tr>
+            <% } %>
+            <% classes.forEach(cls => { %>
+              <tr>
+                <td class="font-medium text-gray-800"><%= cls.name %></td>
+                <td><span class="badge-present"><%= cls.year %></span></td>
+                <td class="text-gray-500"><%= cls.department || '—' %></td>
+                <td class="text-gray-500"><%= cls.classTeacher ? cls.classTeacher.name : '—' %></td>
+                <td>
+                  <div class="flex gap-2">
+                    <button onclick="openEdit('<%= cls._id %>','<%= cls.name %>','<%= cls.year %>','<%= cls.division||'' %>','<%= cls.department||'' %>','<%= cls.classTeacher ? cls.classTeacher._id : '' %>')"
+                      class="btn-primary btn-sm">Edit</button>
+                    <form action="/admin/classes/<%= cls._id %>/delete" method="POST" onsubmit="return confirm('Delete this class?')" style="display:inline">
+                      <button type="submit" class="btn-secondary btn-sm" style="background:#fee2e2;color:#991b1b;border:none">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Edit Modal -->
-<div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 w-96 shadow-xl">
-    <h3 class="text-sm font-semibold text-slate-700 mb-4">Edit Class</h3>
+<div id="editModal" class="modal-backdrop hidden">
+  <div class="modal-box">
+    <h3 class="text-base font-semibold text-gray-800 mb-4">Edit Class</h3>
     <form id="editForm" method="POST" class="space-y-3">
-      <input type="hidden" name="_method" value="PUT">
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Class Name</label>
-        <input type="text" name="name" id="editName" required class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Year</label>
-        <select name="year" id="editYear" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+      <div><label>Class Name</label><input type="text" name="name" id="editName" required class="form-input"></div>
+      <div><label>Year</label>
+        <select name="year" id="editYear" class="form-input">
           <option value="FY">FY</option><option value="SY">SY</option><option value="TE">TE</option><option value="BE">BE</option><option value="Other">Other</option>
         </select>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Division</label>
-        <input type="text" name="division" id="editDiv" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Department</label>
-        <input type="text" name="department" id="editDept" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Class Teacher</label>
-        <select name="classTeacher" id="editTeacher" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-500">
+      <div><label>Division</label><input type="text" name="division" id="editDiv" class="form-input"></div>
+      <div><label>Department</label><input type="text" name="department" id="editDept" class="form-input"></div>
+      <div><label>Class Teacher</label>
+        <select name="classTeacher" id="editTeacher" class="form-input">
           <option value="">None</option>
           <% teachers.forEach(t => { %><option value="<%= t._id %>"><%= t.name %></option><% }) %>
         </select>
       </div>
-      <div class="flex gap-2 pt-2">
-        <button type="submit" class="flex-1 bg-slate-800 text-white py-2 rounded text-sm font-medium hover:bg-slate-700">Save</button>
-        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="flex-1 border border-slate-300 text-slate-600 py-2 rounded text-sm hover:bg-slate-50">Cancel</button>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary flex-1">Save Changes</button>
+        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="btn-secondary flex-1">Cancel</button>
       </div>
     </form>
   </div>
 </div>
 <script>
-function openEdit(id, name, year, division, dept, teacher) {
+function openEdit(id, name, year, div, dept, teacher) {
   document.getElementById('editForm').action = '/admin/classes/' + id + '/update';
   document.getElementById('editName').value = name;
   document.getElementById('editYear').value = year;
-  document.getElementById('editDiv').value = division;
+  document.getElementById('editDiv').value = div;
   document.getElementById('editDept').value = dept;
   document.getElementById('editTeacher').value = teacher;
   document.getElementById('editModal').classList.remove('hidden');
 }
+document.getElementById('editModal').addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); });
 </script>
 <%- include('../partials/footer') %>

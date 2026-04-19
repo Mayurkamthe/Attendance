@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 const path = require('path');
 const connectDB = require('./config/db');
@@ -15,24 +16,37 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'fallback_secret_change_me',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 86400000 }
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600
+  }),
+  cookie: {
+    maxAge: 86400000,
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true
+  }
 }));
+
 app.use(flash());
 
-// Global locals
 app.use((req, res, next) => {
-  res.locals.collegeName = process.env.COLLEGE_NAME;
-  res.locals.waEnabled = process.env.WA_ENABLED === 'true';
+  res.locals.collegeName    = process.env.COLLEGE_NAME    || 'College Name';
+  res.locals.collegeAddress = process.env.COLLEGE_ADDRESS || '';
+  res.locals.collegePhone   = process.env.COLLEGE_PHONE   || '';
+  res.locals.collegeEmail   = process.env.COLLEGE_EMAIL   || '';
+  res.locals.waEnabled      = process.env.WA_ENABLED === 'true';
+  res.locals.attStart       = process.env.ATTENDANCE_START || '08:00';
+  res.locals.attEnd         = process.env.ATTENDANCE_END   || '18:00';
   next();
 });
 
-// Routes
-app.use('/auth', require('./routes/auth'));
-app.use('/admin', require('./routes/admin'));
+app.use('/auth',    require('./routes/auth'));
+app.use('/admin',   require('./routes/admin'));
 app.use('/teacher', require('./routes/teacher'));
 
 app.get('/', (req, res) => res.redirect('/auth/login'));
@@ -48,16 +62,10 @@ app.get('/dashboard', (req, res) => {
   } catch { res.redirect('/auth/login'); }
 });
 
-// Seed admin
 const seedAdmin = async () => {
   const exists = await User.findOne({ email: process.env.ADMIN_EMAIL });
   if (!exists) {
-    await User.create({
-      name: 'Administrator',
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
-      role: 'admin'
-    });
+    await User.create({ name: 'Administrator', email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD, role: 'admin' });
     console.log('Admin seeded:', process.env.ADMIN_EMAIL);
   }
 };
