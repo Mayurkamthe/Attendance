@@ -88,6 +88,7 @@ exports.bulkImportTemplate = async (req, res) => {
   res.end();
 };
 
+exports.dailyReport = async (req, res) => {
   const { classId, date } = req.query;
   const cls = await Class.findById(classId);
   const d = new Date(date);
