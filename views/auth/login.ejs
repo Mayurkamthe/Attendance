@@ -6,76 +6,374 @@
   <title>Login | <%= collegeName %></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/app.css">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0b1640;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    .bg-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(135deg, #0b1640 0%, #112060 45%, #1a3080 100%);
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: #2340a8; top: -120px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: #1e56c0; bottom: -80px; right: -80px; animation-delay: -4s; }
+    .orb-3 { width: 300px; height: 300px; background: #3b5bdb; top: 40%; left: 55%; animation-delay: -8s; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+
+    /* Grid overlay */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* Floating dots */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); opacity: 0.15; }
+      50%       { transform: translateY(-18px); opacity: 0.35; }
+    }
+
+    /* Card */
+    .login-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 24px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    /* Card top accent bar */
+    .card-accent {
+      height: 4px;
+      background: linear-gradient(90deg, #1a3080, #3b5bdb, #1a3080);
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .card-body { padding: 36px 36px 28px; }
+
+    /* Logo badge */
+    .logo-badge {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #1a3080, #3b5bdb);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(26,48,128,0.35);
+    }
+
+    /* Inputs */
+    .field-wrap { position: relative; margin-bottom: 16px; }
+    .field-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: #9ca3af; pointer-events: none;
+      transition: color 0.15s;
+    }
+    .field-wrap:focus-within .field-icon { color: #3b5bdb; }
+    .login-input {
+      width: 100%;
+      padding: 11px 12px 11px 40px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      background: #f9fafb;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .login-input:focus {
+      border-color: #3b5bdb;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(59,91,219,0.12);
+    }
+    .login-input::placeholder { color: #c3c9d4; }
+
+    .eye-btn {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #9ca3af; padding: 4px; border-radius: 6px;
+      transition: color 0.15s;
+    }
+    .eye-btn:hover { color: #3b5bdb; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #1a3080, #2f4ac4);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 4px 16px rgba(26,48,128,0.35);
+      margin-top: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .submit-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(26,48,128,0.45); }
+    .submit-btn:hover::after { opacity: 1; }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn.loading { opacity: 0.75; pointer-events: none; }
+
+    /* Alert */
+    .alert-error {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: #fff5f5; border: 1.5px solid #fecaca;
+      border-radius: 12px; padding: 11px 14px;
+      color: #b91c1c; font-size: 13px;
+      margin-bottom: 20px;
+      animation: slideDown 0.2s ease;
+    }
+    .alert-success {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: #f0fdf4; border: 1.5px solid #bbf7d0;
+      border-radius: 12px; padding: 11px 14px;
+      color: #15803d; font-size: 13px;
+      margin-bottom: 20px;
+      animation: slideDown 0.2s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid #f3f4f6; margin: 20px 0 16px; }
+
+    /* Footer links */
+    .footer-row { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #9ca3af; }
+    .footer-row a { color: #3b5bdb; text-decoration: none; font-weight: 500; }
+    .footer-row a:hover { text-decoration: underline; }
+
+    /* College info bar at bottom of card */
+    .info-bar {
+      background: #f8f9fb;
+      border-top: 1px solid #f0f0f0;
+      padding: 12px 24px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; flex-wrap: wrap;
+      font-size: 11px; color: #9ca3af;
+    }
+    .info-bar span { display: flex; align-items: center; gap: 5px; }
+
+    /* Outside label */
+    .outside-label {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 10;
+    }
+    .outside-label h1 { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    .outside-label p  { font-size: 13px; color: rgba(165,190,255,0.8); margin-top: 4px; }
+
+    label { display: block; font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px; letter-spacing: 0.01em; }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 flex items-center justify-center p-4"
-  style="--tw-gradient-from:#0f1f5c;--tw-gradient-to:#2340a8">
-<style>
-  body { background: linear-gradient(135deg, #0f1f5c 0%, #1a3080 50%, #2340a8 100%); }
-  .card { background: rgba(255,255,255,0.97); border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
-</style>
-  <div class="w-full max-w-sm">
-    <div class="text-center mb-8">
-      <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+<body>
+
+  <!-- Animated background -->
+  <div class="bg-scene">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="grid-overlay"></div>
+
+  <!-- Floating particles -->
+  <div class="dot" style="width:6px;height:6px;left:12%;top:22%;animation-delay:0s;"></div>
+  <div class="dot" style="width:4px;height:4px;left:80%;top:15%;animation-delay:-2s;"></div>
+  <div class="dot" style="width:5px;height:5px;left:65%;top:72%;animation-delay:-4s;"></div>
+  <div class="dot" style="width:3px;height:3px;left:30%;top:80%;animation-delay:-1s;"></div>
+  <div class="dot" style="width:7px;height:7px;left:90%;top:55%;animation-delay:-3s;"></div>
+
+  <div style="position:relative;z-index:10;width:100%;max-width:420px;">
+
+    <!-- College name above card -->
+    <div class="outside-label">
+      <div class="logo-badge" style="margin-bottom:16px;">
+        <svg width="26" height="26" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+        </svg>
       </div>
-      <h1 class="text-xl font-bold text-white"><%= collegeName %></h1>
-      <p class="text-blue-200 text-sm mt-1">Attendance Management System</p>
-      <% if (collegeAddress) { %><p class="text-blue-300 text-xs mt-1"><%= collegeAddress %></p><% } %>
+      <h1><%= collegeName %></h1>
+      <p>Attendance Management System</p>
+      <% if (collegeAddress) { %><p style="font-size:11px;color:rgba(165,190,255,0.6);margin-top:2px;"><%= collegeAddress %></p><% } %>
     </div>
 
-    <div class="card p-8">
-      <h2 class="text-lg font-bold text-gray-800 mb-1">Welcome back</h2>
-      <p class="text-sm text-gray-500 mb-6">Sign in to your account</p>
+    <!-- Login card -->
+    <div class="login-card">
+      <div class="card-accent"></div>
 
-      <% if (error && error.length) { %>
-        <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <%= error %>
-        </div>
-      <% } %>
-      <% if (success && success.length) { %>
-        <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 mb-4 text-sm">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <%= success %>
-        </div>
-      <% } %>
+      <div class="card-body">
+        <h2 style="font-size:18px;font-weight:700;color:#111827;margin:0 0 4px;">Welcome back</h2>
+        <p style="font-size:13px;color:#9ca3af;margin:0 0 24px;">Sign in to your account to continue</p>
 
-      <form action="/auth/login" method="POST" class="space-y-4">
-        <div>
-          <label>Email address</label>
-          <input type="email" name="email" required class="form-input" placeholder="you@college.edu" autocomplete="email">
-        </div>
-        <div>
-          <label>Password</label>
-          <div class="relative">
-            <input type="password" name="password" id="pwdInput" required class="form-input pr-10" placeholder="••••••••" autocomplete="current-password">
-            <button type="button" onclick="togglePwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-            </button>
+        <!-- Error / success alerts -->
+        <% if (error && error.length) { %>
+          <div class="alert-error">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><%= error %></span>
           </div>
-        </div>
-        <button type="submit" class="btn-primary w-full mt-2">Sign In</button>
-      </form>
+        <% } %>
+        <% if (success && success.length) { %>
+          <div class="alert-success">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><%= success %></span>
+          </div>
+        <% } %>
 
-      <div class="mt-5 text-center border-t border-gray-100 pt-4">
-        <a href="/auth/reset-password" class="text-xs text-blue-600 hover:text-blue-800">Forgot password?</a>
+        <form action="/auth/login" method="POST" id="loginForm">
+
+          <!-- Email -->
+          <div style="margin-bottom:16px;">
+            <label for="emailInput">Email address</label>
+            <div class="field-wrap" style="margin-bottom:0;">
+              <svg class="field-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+              </svg>
+              <input type="email" id="emailInput" name="email" required
+                class="login-input" placeholder="you@college.edu" autocomplete="email">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div style="margin-bottom:22px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label for="pwdInput" style="margin:0;">Password</label>
+              <a href="/auth/reset-password" style="font-size:11px;color:#3b5bdb;text-decoration:none;font-weight:500;">Forgot password?</a>
+            </div>
+            <div class="field-wrap" style="margin-bottom:0;">
+              <svg class="field-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <input type="password" id="pwdInput" name="password" required
+                class="login-input" style="padding-right:42px;" placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePwd()" title="Show/hide password">
+                <svg id="eyeIconShow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eyeIconHide" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none;">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span id="btnText">Sign In</span>
+            <span id="btnSpinner" style="display:none;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 0.8s linear infinite;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Signing in...
+            </span>
+          </button>
+
+        </form>
       </div>
 
+      <!-- Info bar -->
       <% if (collegePhone || collegeEmail) { %>
-      <div class="mt-4 pt-4 border-t border-gray-100 text-center text-xs text-gray-400">
-        <% if (collegePhone) { %>Phone: <%= collegePhone %><% } %>
-        <% if (collegePhone && collegeEmail) { %> &nbsp;|&nbsp; <% } %>
-        <% if (collegeEmail) { %><%= collegeEmail %><% } %>
+      <div class="info-bar">
+        <% if (collegePhone) { %>
+        <span>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          <%= collegePhone %>
+        </span>
+        <% } %>
+        <% if (collegeEmail) { %>
+        <span>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <%= collegeEmail %>
+        </span>
+        <% } %>
       </div>
       <% } %>
-    </div>
+
+    </div><!-- /login-card -->
   </div>
 
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 <script>
 function togglePwd() {
   const inp = document.getElementById('pwdInput');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+  const show = document.getElementById('eyeIconShow');
+  const hide = document.getElementById('eyeIconHide');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    show.style.display = 'none';
+    hide.style.display = 'block';
+  } else {
+    inp.type = 'password';
+    show.style.display = 'block';
+    hide.style.display = 'none';
+  }
 }
+
+document.getElementById('loginForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  const txt = document.getElementById('btnText');
+  const spin = document.getElementById('btnSpinner');
+  btn.classList.add('loading');
+  txt.style.display = 'none';
+  spin.style.display = 'inline-flex';
+});
 </script>
 </body>
 </html>
