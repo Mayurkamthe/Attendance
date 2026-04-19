@@ -119,8 +119,8 @@ exports.getStudents = async (req, res) => {
     res.render('admin/students', {
       title: 'Students', students: [], classes: [],
       selectedClass: '',
-      error: 'Failed to load students: ' + e.message,
-      success: ''
+      error: ['Failed to load students: ' + e.message],
+      success: []
     });
   }
 };
@@ -146,9 +146,11 @@ exports.createStudent = async (req, res) => {
 };
 
 exports.updateStudent = async (req, res) => {
+  let classId = '';
   try {
     const { name, rollNumber, parentPhone } = req.body;
-    // Only update safe fields, never change the class via this route
+    const student = await Student.findById(req.params.id);
+    classId = student ? student.class : '';
     await Student.findByIdAndUpdate(req.params.id, {
       name: name.trim(),
       rollNumber: rollNumber.trim(),
@@ -161,11 +163,9 @@ exports.updateStudent = async (req, res) => {
     } else {
       req.flash('error', 'Update failed: ' + e.message);
     }
+  } finally {
+    res.redirect('/admin/students' + (classId ? '?classId=' + classId : ''));
   }
-  // Redirect back to the class the student belongs to
-  const student = await Student.findById(req.params.id).catch(() => null);
-  const classId = student ? student.class : '';
-  res.redirect('/admin/students' + (classId ? '?classId=' + classId : ''));
 };
 
 exports.deleteStudent = async (req, res) => {
