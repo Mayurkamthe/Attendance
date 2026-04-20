@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Not Found | <%= collegeName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body style="min-height:100vh;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="text-align:center;padding:40px 20px;max-width:400px;">
+    <div style="width:64px;height:64px;background:#fee2e2;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <svg width="32" height="32" fill="none" stroke="#b91c1c" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <h1 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Page Not Found</h1>
+    <p style="color:#64748b;font-size:14px;margin:0 0 6px;">
+      <%= typeof error !== 'undefined' ? error : 'This attendance link is invalid or has expired.' %>
+    </p>
+    <p style="color:#94a3b8;font-size:12px;margin:0;">
+      Please contact <%= collegeName %> for a valid link.
+    </p>
+    <% if (collegeAddress) { %>
+      <p style="color:#94a3b8;font-size:12px;margin:8px 0 0;"><%= collegeAddress %></p>
+    <% } %>
+  </div>
+</body>
+</html>

@@ -24,6 +24,7 @@ router.get('/students', admin.getStudents);
 router.post('/students', admin.createStudent);
 // ⚠️ bulk-upload MUST stay above /:id routes to avoid 'bulk-upload' being treated as an ObjectId
 router.post('/students/bulk-upload', upload.single('file'), admin.bulkUpload);
+router.get('/students/:id/parent-link', admin.getParentLink);
 router.post('/students/:id/update', admin.updateStudent);
 router.post('/students/:id/delete', admin.deleteStudent);
 

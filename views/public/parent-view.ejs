@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= student.name %> — Attendance | <%= collegeName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+
+    .top-bar { background: linear-gradient(135deg, #0f1f5c 0%, #1a3080 100%); color: white; padding: 18px 20px; }
+    .top-bar h1 { font-size: 15px; font-weight: 700; margin: 0; }
+    .top-bar p  { font-size: 12px; margin: 2px 0 0; opacity: 0.7; }
+
+    .card { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .section-title { font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media(min-width: 640px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
+    .stat-box { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 14px 16px; }
+    .stat-box .val { font-size: 26px; font-weight: 800; line-height: 1; }
+    .stat-box .lbl { font-size: 11px; color: #94a3b8; margin-top: 4px; font-weight: 500; }
+
+    /* Big donut % */
+    .pct-ring { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+    .pct-ring svg { transform: rotate(-90deg); }
+    .pct-ring .pct-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; }
+
+    /* Subject bars */
+    .subj-bar-bg { height: 8px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 6px; }
+    .subj-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+    /* Calendar */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-header { text-align: center; font-size: 10px; font-weight: 700; color: #94a3b8; padding: 4px 0; }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      cursor: default;
+      position: relative;
+    }
+    .cal-day.empty { background: transparent; }
+    .cal-day.present { background: #dcfce7; color: #15803d; }
+    .cal-day.absent  { background: #fee2e2; color: #b91c1c; }
+    .cal-day.partial { background: #fef9c3; color: #92400e; }
+    .cal-day.none    { background: #f8fafc; color: #cbd5e1; }
+    .cal-day:hover .tooltip { display: block; }
+    .tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white;
+      font-size: 11px; border-radius: 6px;
+      padding: 5px 8px; white-space: nowrap;
+      z-index: 50; pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Absent list */
+    .absent-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .absent-item:last-child { border-bottom: none; }
+
+    /* Month/year picker */
+    .picker-form select { font-size: 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; outline: none; }
+    .picker-form select:focus { border-color: #3b5bdb; }
+    .picker-form button { background: #1a3080; color: #fff; border: none; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    /* Attendance badge */
+    .att-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+    .att-good   { background: #dcfce7; color: #15803d; }
+    .att-warn   { background: #fef9c3; color: #92400e; }
+    .att-danger { background: #fee2e2; color: #b91c1c; }
+
+    /* Legend */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div style="max-width:720px;margin:0 auto;display:flex;align-items:center;gap:14px;">
+      <div style="width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+        </svg>
+      </div>
+      <div>
+        <h1><%= collegeName %></h1>
+        <p>Student Attendance Portal<% if (collegeAddress) { %> &nbsp;·&nbsp; <%= collegeAddress %><% } %></p>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:720px;margin:0 auto;padding:20px 16px 40px;">
+
+    <!-- Student info card -->
+    <div class="card" style="padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#1a3080,#3b5bdb);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span style="font-size:20px;font-weight:800;color:white;"><%= student.name.charAt(0).toUpperCase() %></span>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#0f172a;"><%= student.name %></div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">
+            Roll: <strong><%= student.rollNumber %></strong>
+            &nbsp;·&nbsp; <%= student.class.name %>
+            &nbsp;·&nbsp; <%= yearLabel %>
+            <% if (student.class.department) { %>&nbsp;·&nbsp; <%= student.class.department %><% } %>
+          </div>
+        </div>
+      </div>
+      <%
+        let badgeClass = 'att-good', badgeIcon = '✓';
+        if (overallPct === null) { badgeClass = ''; badgeIcon = ''; }
+        else if (overallPct < 75) { badgeClass = 'att-danger'; badgeIcon = '!'; }
+        else if (overallPct < 85) { badgeClass = 'att-warn'; badgeIcon = '~'; }
+      %>
+      <% if (overallPct !== null) { %>
+        <span class="att-badge <%= badgeClass %>"><%= badgeIcon %> <%= overallPct %>% Overall</span>
+      <% } %>
+    </div>
+
+    <!-- Month picker -->
+    <div class="card" style="padding:14px 20px;margin-bottom:16px;">
+      <form method="GET" action="/p/attendance/<%= token %>" class="picker-form" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:600;color:#475569;">Viewing:</span>
+        <select name="month">
+          <% monthNames.forEach((mn, i) => { %>
+            <option value="<%= i+1 %>" <%= selMonth === i+1 ? 'selected' : '' %>><%= mn %></option>
+          <% }) %>
+        </select>
+        <select name="year">
+          <% yearOptions.forEach(y => { %>
+            <option value="<%= y %>" <%= selYear === y ? 'selected' : '' %>><%= y %></option>
+          <% }) %>
+        </select>
+        <button type="submit">View</button>
+      </form>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="stat-grid" style="margin-bottom:16px;">
+      <div class="stat-box">
+        <div class="val" style="color:#15803d;"><%= totalPresent %></div>
+        <div class="lbl">Classes Present</div>
+      </div>
+      <div class="stat-box">
+        <div class="val" style="color:#b91c1c;"><%= totalAbsent %></div>
+        <div class="lbl">Classes Absent</div>
+      </div>
+      <div class="stat-box">
+        <div class="val" style="color:#1a3080;"><%= totalClasses %></div>
+        <div class="lbl">Total Classes</div>
+      </div>
+      <div class="stat-box">
+        <% if (overallPct === null) { %>
+          <div class="val" style="color:#94a3b8;">—</div>
+        <% } else { %>
+          <div class="val" style="color:<%= overallPct >= 75 ? '#15803d' : '#b91c1c' %>;"><%= overallPct %>%</div>
+        <% } %>
+        <div class="lbl">Attendance %</div>
+      </div>
+    </div>
+
+    <!-- Subject-wise breakdown -->
+    <% if (subjects.length > 0) { %>
+    <div class="card" style="padding:18px 20px;margin-bottom:16px;">
+      <div class="section-title">Subject-wise Attendance</div>
+      <% subjects.forEach(subj => { %>
+        <%
+          let barColor = '#16a34a';
+          if (subj.pct !== null && subj.pct < 75) barColor = '#dc2626';
+          else if (subj.pct !== null && subj.pct < 85) barColor = '#d97706';
+        %>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;color:#334155;"><%= subj.name %></span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:#94a3b8;"><%= subj.present %>P / <%= subj.absent %>A</span>
+              <span style="font-size:13px;font-weight:700;color:<%= barColor %>;">
+                <%= subj.pct !== null ? subj.pct + '%' : '—' %>
+              </span>
+            </div>
+          </div>
+          <div class="subj-bar-bg">
+            <div class="subj-bar-fill" style="width:<%= subj.pct !== null ? subj.pct : 0 %>%;background:<%= barColor %>;"></div>
+          </div>
+        </div>
+      <% }) %>
+      <div style="margin-top:6px;font-size:11px;color:#94a3b8;">Minimum required attendance is typically 75%</div>
+    </div>
+    <% } %>
+
+    <!-- Calendar -->
+    <div class="card" style="padding:18px 20px;margin-bottom:16px;">
+      <div class="section-title"><%= monthName %> <%= selYear %> — Calendar</div>
+      <div class="cal-grid">
+        <% ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ %>
+          <div class="cal-day-header"><%= d %></div>
+        <% }); %>
+        <% calendarDays.forEach(function(day){ %>
+          <% if (!day) { %>
+            <div class="cal-day empty"></div>
+          <% } else { %>
+            <div class="cal-day <%= day.status || 'none' %>">
+              <%= day.day %>
+              <% if (day.subjects && day.subjects.length > 0) { %>
+                <div class="tooltip">
+                  <% day.subjects.forEach(function(s){ %>
+                    <div><%= s.status === 'present' ? 'P' : 'A' %> - <%= s.name %></div>
+                  <% }); %>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        <% }); %>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#dcfce7;border:1px solid #86efac;"></div> Present</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fee2e2;border:1px solid #fca5a5;"></div> Absent</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fef9c3;border:1px solid #fde047;"></div> Partial (some subjects)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f8fafc;border:1px solid #e2e8f0;"></div> No class</div>
+      </div>
+    </div>
+
+    <!-- Recent absences -->
+    <% if (recentAbsent.length > 0) { %>
+    <div class="card" style="padding:18px 20px;margin-bottom:16px;">
+      <div class="section-title">Recent Absences</div>
+      <% recentAbsent.forEach(item => { %>
+        <div class="absent-item">
+          <div style="width:34px;height:34px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="15" height="15" fill="none" stroke="#b91c1c" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0f172a;">
+              <%= new Date(item.date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' }) %>
+            </div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;"><%= item.subjects.join(', ') %></div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <% if (subjects.length === 0) { %>
+    <div class="card" style="padding:40px 20px;text-align:center;">
+      <svg width="40" height="40" fill="none" stroke="#cbd5e1" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px;display:block;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <p style="color:#94a3b8;font-size:14px;margin:0;">No attendance records found for <%= monthName %> <%= selYear %></p>
+      <p style="color:#cbd5e1;font-size:12px;margin:6px 0 0;">Try selecting a different month above</p>
+    </div>
+    <% } %>
+
+    <!-- Footer -->
+    <div style="text-align:center;margin-top:24px;font-size:11px;color:#94a3b8;">
+      <% if (collegePhone || collegeEmail) { %>
+        <p style="margin:0 0 4px;">
+          <% if (collegePhone) { %>📞 <%= collegePhone %><% } %>
+          <% if (collegePhone && collegeEmail) { %> &nbsp;·&nbsp; <% } %>
+          <% if (collegeEmail) { %>✉️ <%= collegeEmail %><% } %>
+        </p>
+      <% } %>
+      <p style="margin:0;">This page is for viewing only. Data is updated in real-time.</p>
+    </div>
+
+  </div>
+</body>
+</html>

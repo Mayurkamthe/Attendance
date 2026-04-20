@@ -55,6 +55,7 @@ app.use((req, res, next) => {
 app.use('/auth',    require('./routes/auth'));
 app.use('/admin',   require('./routes/admin'));
 app.use('/teacher', require('./routes/teacher'));
+app.use('/p',       require('./routes/public'));   // public parent-view (no login)
 
 app.get('/', (req, res) => res.redirect('/auth/login'));
 

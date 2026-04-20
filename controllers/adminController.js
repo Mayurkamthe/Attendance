@@ -266,3 +266,20 @@ exports.getReports = async (req, res) => {
   const classes = await Class.find({ isActive: true });
   res.render('admin/reports', { title: 'Reports', classes, error: req.flash('error'), success: req.flash('success') });
 };
+
+// ── Parent Link ───────────────────────────────────────────────────────────────
+exports.getParentLink = async (req, res) => {
+  try {
+    const crypto = require('crypto');
+    let student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+    if (!student.parentToken) {
+      student.parentToken = crypto.randomBytes(20).toString('hex');
+      await student.save();
+    }
+    const baseUrl = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
+    res.json({ url: `${baseUrl}/p/attendance/${student.parentToken}` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
