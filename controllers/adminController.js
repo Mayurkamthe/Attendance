@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Class = require('../models/Class');
 const Student = require('../models/Student');
 const Attendance = require('../models/Attendance');
+const Subject = require('../models/Subject');
 const xlsx = require('xlsx');
 
 // Dashboard
@@ -282,4 +283,70 @@ exports.getParentLink = async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+};
+
+// ── Subjects ──────────────────────────────────────────────────────────────────
+exports.getSubjects = async (req, res) => {
+  try {
+    const { classId } = req.query;
+    const classes  = await Class.find({ isActive: true }).sort({ name: 1 });
+    const teachers = await User.find({ role: 'teacher', isActive: true }).sort({ name: 1 });
+    let subjects = [];
+    if (classId) {
+      subjects = await Subject.find({ class: classId })
+        .populate('teacher', 'name email')
+        .populate('class', 'name year')
+        .sort({ name: 1 });
+    }
+    res.render('admin/subjects', {
+      title: 'Subjects', subjects, classes, teachers,
+      selectedClass: classId || '',
+      error: req.flash('error'), success: req.flash('success')
+    });
+  } catch (e) {
+    console.error('getSubjects error:', e);
+    req.flash('error', 'Failed to load subjects: ' + e.message);
+    res.redirect('/admin/dashboard');
+  }
+};
+
+exports.createSubject = async (req, res) => {
+  const { classId, name, code, teacher } = req.body;
+  try {
+    if (!name || !classId || !teacher) {
+      req.flash('error', 'Name, class and teacher are required');
+      return res.redirect('/admin/subjects' + (classId ? '?classId=' + classId : ''));
+    }
+    await Subject.create({ name: name.trim(), code: code ? code.trim() : undefined, class: classId, teacher });
+    req.flash('success', `Subject "${name}" created successfully`);
+  } catch (e) {
+    if (e.code === 11000) req.flash('error', 'A subject with this name already exists in this class');
+    else req.flash('error', 'Failed to create subject: ' + e.message);
+  }
+  res.redirect('/admin/subjects?classId=' + classId);
+};
+
+exports.updateSubject = async (req, res) => {
+  const { name, code, teacher, classId } = req.body;
+  try {
+    await Subject.findByIdAndUpdate(req.params.id, {
+      name: name.trim(), code: code ? code.trim() : '', teacher
+    });
+    req.flash('success', 'Subject updated');
+  } catch (e) {
+    if (e.code === 11000) req.flash('error', 'Duplicate subject name in this class');
+    else req.flash('error', 'Update failed: ' + e.message);
+  }
+  res.redirect('/admin/subjects?classId=' + classId);
+};
+
+exports.deleteSubject = async (req, res) => {
+  const { classId } = req.body;
+  try {
+    await Subject.findByIdAndDelete(req.params.id);
+    req.flash('success', 'Subject deleted');
+  } catch (e) {
+    req.flash('error', 'Delete failed: ' + e.message);
+  }
+  res.redirect('/admin/subjects' + (classId ? '?classId=' + classId : ''));
 };

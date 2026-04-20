@@ -2,58 +2,72 @@
 
 <div class="card p-5 mb-6">
   <form method="GET" action="/teacher/records" class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
-    <div>
-      <label>Class</label>
-      <select name="classId" class="form-input">
-        <option value="">Select Class</option>
-        <% classes.forEach(c => { %><option value="<%= c._id %>" <%= selectedClass==c._id.toString()?'selected':'' %>><%= c.name %></option><% }) %>
+    <div class="col-span-2 md:col-span-1">
+      <label>Subject</label>
+      <select name="subjectId" class="form-input">
+        <option value="">Select Subject</option>
+        <% mySubjects.forEach(function(s){ %>
+          <option value="<%= s._id %>" <%= selectedSubjectId === s._id.toString() ? 'selected' : '' %>>
+            <%= s.class.name %> — <%= s.name %>
+          </option>
+        <% }); %>
       </select>
     </div>
-    <div><label>From</label><input type="date" name="dateFrom" value="<%= dateFrom||'' %>" class="form-input"></div>
-    <div><label>To</label><input type="date" name="dateTo" value="<%= dateTo||'' %>" class="form-input"></div>
+    <div><label>From</label><input type="date" name="dateFrom" value="<%= dateFrom %>" class="form-input"></div>
+    <div><label>To</label><input type="date" name="dateTo" value="<%= dateTo %>" class="form-input"></div>
     <div><button type="submit" class="btn-primary w-full">Filter</button></div>
   </form>
 </div>
 
-<% if (!records.length) { %>
+<% if (!selectedSubjectId) { %>
   <div class="card p-10 text-center text-gray-400">
-    <p class="text-sm">Select a class and date range to view records</p>
+    <p class="text-sm">Select a subject to view attendance records</p>
   </div>
-<% } %>
-
-<% records.forEach(att => {
-  const present=att.records.filter(r=>r.status==='present').length;
-  const absent=att.records.filter(r=>r.status==='absent').length;
-%>
-  <div class="card mb-4 overflow-hidden">
-    <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
-      <span class="font-semibold text-gray-800 text-sm"><%= new Date(att.date).toDateString() %></span>
-      <div class="flex gap-2 text-xs">
-        <span class="badge-present">P: <%= present %></span>
-        <span class="badge-absent">A: <%= absent %></span>
+<% } else if (!records.length) { %>
+  <div class="card p-10 text-center text-gray-400">
+    <p class="text-sm">No records found for the selected filters</p>
+  </div>
+<% } else { %>
+  <% records.forEach(function(att){ %>
+    <%
+      const present = att.records.filter(function(r){ return r.status === 'present'; }).length;
+      const absent  = att.records.filter(function(r){ return r.status === 'absent';  }).length;
+    %>
+    <div class="card mb-4 overflow-hidden">
+      <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="font-semibold text-gray-800 text-sm"><%= new Date(att.date).toDateString() %></span>
+          <% if (att.subject) { %><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2 font-medium"><%= att.subject %></span><% } %>
+        </div>
+        <div class="flex gap-2 text-xs">
+          <span class="badge-present">P: <%= present %></span>
+          <span class="badge-absent">A: <%= absent %></span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Roll No</th><th>Name</th><th>Status</th><% if (waEnabled) { %><th>WhatsApp</th><% } %></tr></thead>
+          <tbody>
+            <% att.records.sort(function(a,b){ return (a.student&&a.student.rollNumber||'').localeCompare(b.student&&b.student.rollNumber||'',undefined,{numeric:true}); }).forEach(function(r){ %>
+              <tr class="<%= r.status === 'absent' ? 'bg-red-50' : '' %>">
+                <td class="font-mono text-gray-700"><%= r.student ? r.student.rollNumber : '—' %></td>
+                <td class="font-medium text-gray-800"><%= r.student ? r.student.name : 'Deleted' %></td>
+                <td><span class="<%= r.status === 'present' ? 'badge-present' : 'badge-absent' %>"><%= r.status.toUpperCase() %></span></td>
+                <% if (waEnabled) { %>
+                <td>
+                  <% if (r.status === 'absent' && r.student) { %>
+                    <a href="https://wa.me/<%= r.student.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(r.student.name) %>+was+ABSENT+in+<%= encodeURIComponent(att.subject||'class') %>+on+<%= new Date(att.date).toDateString() %>.+-+<%= encodeURIComponent(collegeName) %>"
+                      target="_blank" class="btn-primary btn-sm" style="background:#15803d">Send WA</a>
+                  <% } %>
+                </td>
+                <% } %>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Roll No</th><th>Name</th><th>Status</th><th>WhatsApp</th></tr></thead>
-        <tbody>
-          <% att.records.sort((a,b)=>(a.student?.rollNumber||'').localeCompare(b.student?.rollNumber||'',undefined,{numeric:true})).forEach(r=>{ %>
-            <tr class="<%= r.status==='absent'?'bg-red-50':'' %>">
-              <td class="font-mono text-gray-700"><%= r.student?r.student.rollNumber:'—' %></td>
-              <td class="font-medium text-gray-800"><%= r.student?r.student.name:'Deleted' %></td>
-              <td><span class="<%= r.status==='present'?'badge-present':'badge-absent' %>"><%= r.status.toUpperCase() %></span></td>
-              <td>
-                <% if (r.status==='absent'&&r.student) { %>
-                  <a href="https://wa.me/<%= r.student.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(r.student.name) %>+is+ABSENT+on+<%= new Date(att.date).toDateString() %>.+-+<%= encodeURIComponent(collegeName) %>"
-                    target="_blank" class="btn-primary btn-sm" style="background:#15803d">Send WA</a>
-                <% } %>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  </div>
-<% }) %>
+  <% }); %>
+<% } %>
 
 <%- include('../partials/footer') %>

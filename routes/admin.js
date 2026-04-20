@@ -31,6 +31,11 @@ router.post('/students/:id/delete', admin.deleteStudent);
 router.get('/attendance', admin.getAttendance);
 router.post('/attendance/edit', admin.editAttendance);
 
+router.get('/subjects', admin.getSubjects);
+router.post('/subjects', admin.createSubject);
+router.post('/subjects/:id/update', admin.updateSubject);
+router.post('/subjects/:id/delete', admin.deleteSubject);
+
 router.get('/reports', admin.getReports);
 router.get('/reports/daily', exp.dailyReport);
 router.get('/reports/monthly', exp.monthlyReport);

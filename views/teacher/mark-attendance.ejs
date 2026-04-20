@@ -1,94 +1,106 @@
 <%- include('../partials/header') %>
 
 <div class="flex flex-col lg:flex-row gap-6">
+
+  <!-- Sidebar: subject + date picker -->
   <div class="w-full lg:w-64 flex-shrink-0">
     <div class="card p-5 side-panel">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">Select Class & Date</h3>
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Select Subject & Date</h3>
       <form method="GET" action="/teacher/attendance" class="space-y-3">
         <div>
-          <label>Class</label>
-          <select name="classId" class="form-input">
-            <option value="">Select Class</option>
-            <% classes.forEach(c => { %><option value="<%= c._id %>" <%= selectedClass==c._id.toString()?'selected':'' %>><%= c.name %></option><% }) %>
+          <label>Subject</label>
+          <select name="subjectId" class="form-input">
+            <option value="">Select Subject</option>
+            <% mySubjects.forEach(function(s){ %>
+              <option value="<%= s._id %>" <%= selectedSubjectId === s._id.toString() ? 'selected' : '' %>>
+                <%= s.class.name %> — <%= s.name %>
+              </option>
+            <% }); %>
           </select>
         </div>
         <div>
           <label>Date</label>
           <input type="date" name="date" value="<%= selectedDate %>" class="form-input">
         </div>
-        <div>
-          <label>Subject <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
-          <input type="text" name="subject" value="<%= selectedSubject %>" class="form-input" placeholder="e.g. Mathematics, Physics">
-        </div>
         <button type="submit" class="btn-primary w-full">Load Students</button>
       </form>
     </div>
   </div>
 
+  <!-- Main content -->
   <div class="flex-1 min-w-0">
-    <% if (!selectedClass) { %>
+    <% if (!selectedSubject) { %>
       <div class="card p-10 text-center text-gray-400">
         <svg class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-        <p class="text-sm">Select a class and date to mark attendance</p>
+        <p class="text-sm">Select a subject and date to mark attendance</p>
       </div>
     <% } else if (!students.length) { %>
-      <div class="card p-10 text-center text-gray-400"><p class="text-sm">No students in this class</p></div>
+      <div class="card p-10 text-center text-gray-400">
+        <p class="text-sm">No students enrolled in this class</p>
+      </div>
     <% } else { %>
+
       <% if (existing) { %>
         <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 mb-4 text-sm">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Attendance already marked for this date. You can update it below.
+          Attendance already marked for this subject on this date. You can update it below.
         </div>
       <% } %>
+
       <form action="/teacher/attendance" method="POST">
-        <input type="hidden" name="classId" value="<%= selectedClass %>">
-        <input type="hidden" name="date" value="<%= selectedDate %>">
-        <input type="hidden" name="subject" value="<%= selectedSubject %>">
+        <input type="hidden" name="subjectId" value="<%= selectedSubject._id %>">
+        <input type="hidden" name="date"      value="<%= selectedDate %>">
+
         <div class="card overflow-hidden">
           <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
             <div>
               <span class="font-semibold text-gray-800 text-sm"><%= students.length %> Students</span>
               <span class="text-xs text-gray-500 ml-2"><%= selectedDate %></span>
-              <% if (selectedSubject) { %><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2 font-medium"><%= selectedSubject %></span><% } %>
+              <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2 font-medium"><%= selectedSubject.name %></span>
+              <span class="text-xs text-gray-400 ml-1"><%= selectedSubject.class.name %></span>
             </div>
             <div class="flex gap-2">
               <button type="button" onclick="markAll('present')" class="btn-primary btn-sm" style="background:#15803d">All Present</button>
-              <button type="button" onclick="markAll('absent')" class="btn-primary btn-sm" style="background:#991b1b">All Absent</button>
+              <button type="button" onclick="markAll('absent')"  class="btn-primary btn-sm" style="background:#991b1b">All Absent</button>
             </div>
           </div>
 
           <!-- Mobile card view -->
           <div class="block md:hidden p-4 space-y-2" id="mobileCards">
-            <% students.forEach(s => {
-              let st = 'present';
-              if (existing) { const rec = existing.records.find(r=>r.student&&r.student._id.toString()===s._id.toString()); if(rec) st=rec.status; }
-            %>
+            <% students.forEach(function(s){ %>
+              <%
+                let st = 'present';
+                if (existing) {
+                  const rec = existing.records.find(function(r){ return r.student && r.student._id.toString() === s._id.toString(); });
+                  if (rec) st = rec.status;
+                }
+              %>
               <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50" id="mcard-<%= s._id %>">
                 <div>
                   <p class="font-semibold text-gray-800 text-sm"><%= s.name %></p>
                   <p class="text-xs text-gray-500">Roll: <%= s.rollNumber %></p>
                 </div>
-                <div class="flex gap-2 items-center">
+                <div class="flex gap-3 items-center">
                   <label class="flex items-center gap-1 cursor-pointer">
-                    <input type="radio" name="statuses[<%= s._id %>]" value="present" <%= st==='present'?'checked':'' %> class="att-radio" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','present')">
-                    <span class="text-xs text-green-700 font-medium">P</span>
+                    <input type="radio" name="statuses[<%= s._id %>]" value="present" <%= st === 'present' ? 'checked' : '' %> class="att-radio" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','present')">
+                    <span class="text-xs text-green-700 font-bold">P</span>
                   </label>
                   <label class="flex items-center gap-1 cursor-pointer">
-                    <input type="radio" name="statuses[<%= s._id %>]" value="absent" <%= st==='absent'?'checked':'' %> class="att-radio" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','absent')">
-                    <span class="text-xs text-red-700 font-medium">A</span>
+                    <input type="radio" name="statuses[<%= s._id %>]" value="absent" <%= st === 'absent' ? 'checked' : '' %> class="att-radio" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','absent')">
+                    <span class="text-xs text-red-700 font-bold">A</span>
                   </label>
                   <% if (waEnabled) { %>
-                    <a href="https://wa.me/<%= s.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(s.name) %>+is+ABSENT+on+<%= selectedDate %>.+-+<%= encodeURIComponent(collegeName) %>"
-                      target="_blank" id="wa-<%= s._id %>" class="text-green-600 <%= st==='present'?'hidden':'' %>">
+                    <a href="https://wa.me/<%= s.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(s.name) %>+was+ABSENT+in+<%= encodeURIComponent(selectedSubject.name) %>+on+<%= selectedDate %>.+-+<%= encodeURIComponent(collegeName) %>"
+                      target="_blank" id="wa-<%= s._id %>" class="text-green-600 <%= st === 'present' ? 'hidden' : '' %>">
                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     </a>
                   <% } %>
                 </div>
               </div>
-            <% }) %>
+            <% }); %>
           </div>
 
-          <!-- Desktop table view -->
+          <!-- Desktop table -->
           <div class="hidden md:block table-wrap">
             <table>
               <thead><tr>
@@ -98,27 +110,31 @@
                 <% if (waEnabled) { %><th>WhatsApp</th><% } %>
               </tr></thead>
               <tbody id="studentTable">
-                <% students.forEach(s => {
-                  let st='present';
-                  if(existing){const rec=existing.records.find(r=>r.student&&r.student._id.toString()===s._id.toString());if(rec)st=rec.status;}
-                %>
-                  <tr id="row-<%= s._id %>" class="<%= st==='absent'?'bg-red-50':'' %>">
+                <% students.forEach(function(s){ %>
+                  <%
+                    let st = 'present';
+                    if (existing) {
+                      const rec = existing.records.find(function(r){ return r.student && r.student._id.toString() === s._id.toString(); });
+                      if (rec) st = rec.status;
+                    }
+                  %>
+                  <tr id="row-<%= s._id %>" class="<%= st === 'absent' ? 'bg-red-50' : '' %>">
                     <td class="font-mono text-gray-700"><%= s.rollNumber %></td>
                     <td class="font-medium text-gray-800"><%= s.name %></td>
                     <td class="text-center">
-                      <input type="radio" name="statuses[<%= s._id %>]" value="present" <%= st==='present'?'checked':'' %> class="att-radio w-4 h-4 accent-green-600" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','present')">
+                      <input type="radio" name="statuses[<%= s._id %>]" value="present" <%= st === 'present' ? 'checked' : '' %> class="att-radio w-4 h-4 accent-green-600" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','present')">
                     </td>
                     <td class="text-center">
-                      <input type="radio" name="statuses[<%= s._id %>]" value="absent" <%= st==='absent'?'checked':'' %> class="att-radio w-4 h-4 accent-red-600" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','absent')">
+                      <input type="radio" name="statuses[<%= s._id %>]" value="absent" <%= st === 'absent' ? 'checked' : '' %> class="att-radio w-4 h-4 accent-red-600" data-id="<%= s._id %>" onchange="updateRow('<%= s._id %>','absent')">
                     </td>
                     <% if (waEnabled) { %>
                     <td>
-                      <a href="https://wa.me/<%= s.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(s.name) %>+is+ABSENT+on+<%= selectedDate %>.+-+<%= encodeURIComponent(collegeName) %>"
-                        target="_blank" id="wa-<%= s._id %>" class="btn-primary btn-sm <%= st==='present'?'hidden':'' %>" style="background:#15803d">WA</a>
+                      <a href="https://wa.me/<%= s.parentPhone.replace(/\D/g,'') %>?text=Dear+Parent%2C+Your+child+<%= encodeURIComponent(s.name) %>+was+ABSENT+in+<%= encodeURIComponent(selectedSubject.name) %>+on+<%= selectedDate %>.+-+<%= encodeURIComponent(collegeName) %>"
+                        target="_blank" id="wa-<%= s._id %>" class="btn-primary btn-sm <%= st === 'present' ? 'hidden' : '' %>" style="background:#15803d">WA</a>
                     </td>
                     <% } %>
                   </tr>
-                <% }) %>
+                <% }); %>
               </tbody>
             </table>
           </div>
@@ -134,29 +150,30 @@
 </div>
 
 <script>
-function markAll(status){
-  document.querySelectorAll('.att-radio[value="'+status+'"]').forEach(r=>{
-    r.checked=true; updateRow(r.dataset.id,status);
+function markAll(status) {
+  document.querySelectorAll('.att-radio[value="'+status+'"]').forEach(function(r){
+    r.checked = true; updateRow(r.dataset.id, status);
   });
   updateCount();
 }
-function updateRow(id,status){
-  const row=document.getElementById('row-'+id);
-  if(row) row.style.background=status==='absent'?'#fff5f5':'';
-  const mcard=document.getElementById('mcard-'+id);
-  if(mcard) mcard.style.borderColor=status==='absent'?'#fca5a5':'#e5e7eb';
-  const wa=document.getElementById('wa-'+id);
-  if(wa) wa.classList.toggle('hidden',status==='present');
+function updateRow(id, status) {
+  const row   = document.getElementById('row-' + id);
+  if (row) row.style.background = status === 'absent' ? '#fff5f5' : '';
+  const mcard = document.getElementById('mcard-' + id);
+  if (mcard) mcard.style.borderColor = status === 'absent' ? '#fca5a5' : '#e5e7eb';
+  const wa = document.getElementById('wa-' + id);
+  if (wa) wa.classList.toggle('hidden', status === 'present');
   updateCount();
 }
-function updateCount(){
-  const radios=document.querySelectorAll('.att-radio:checked');
-  let p=0,a=0;
-  radios.forEach(r=>{ if(r.value==='present')p++; else a++; });
-  const el=document.getElementById('countDisplay');
-  if(el) el.textContent='Present: '+p+' | Absent: '+a;
+function updateCount() {
+  let p = 0, a = 0;
+  document.querySelectorAll('.att-radio:checked').forEach(function(r){
+    if (r.value === 'present') p++; else a++;
+  });
+  const el = document.getElementById('countDisplay');
+  if (el) el.textContent = 'Present: ' + p + ' | Absent: ' + a;
 }
-document.querySelectorAll('.att-radio[value="absent"]:checked').forEach(r=>updateRow(r.dataset.id,'absent'));
+document.querySelectorAll('.att-radio[value="absent"]:checked').forEach(function(r){ updateRow(r.dataset.id,'absent'); });
 updateCount();
 </script>
 <%- include('../partials/footer') %>
