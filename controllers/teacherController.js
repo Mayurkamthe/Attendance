@@ -1,15 +1,23 @@
-const Class = require('../models/Class');
+const Class   = require('../models/Class');
 const Student = require('../models/Student');
-const Attendance = require('../models/Attendance');
 const Subject = require('../models/Subject');
+const Attendance = require('../models/Attendance');
+const { checkAttendanceWindow } = require('../utils/time');
 
+// ── Helper: date range for a single day ──────────────────────────────────────
+function dayRange(dateStr) {
+  const d = new Date(dateStr);
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,  0,  0);
+  const end   = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+  return { $gte: start, $lte: end };
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 exports.getDashboard = async (req, res) => {
-  // Get subjects assigned to this teacher, grouped by class
   const subjects = await Subject.find({ teacher: req.user._id, isActive: true })
     .populate('class', 'name year department')
-    .sort({ 'class.name': 1, name: 1 });
+    .sort({ name: 1 });
 
-  // Group subjects by class
   const classMap = {};
   for (const subj of subjects) {
     const cid = subj.class._id.toString();
@@ -21,10 +29,10 @@ exports.getDashboard = async (req, res) => {
   res.render('teacher/dashboard', { title: 'Teacher Dashboard', assignedGroups });
 };
 
+// ── GET Mark Attendance ───────────────────────────────────────────────────────
 exports.getMarkAttendance = async (req, res) => {
   const { subjectId, date } = req.query;
 
-  // Load only subjects assigned to this teacher
   const mySubjects = await Subject.find({ teacher: req.user._id, isActive: true })
     .populate('class', 'name year department')
     .sort({ name: 1 });
@@ -34,17 +42,15 @@ exports.getMarkAttendance = async (req, res) => {
 
   if (subjectId) {
     selectedSubject = mySubjects.find(s => s._id.toString() === subjectId);
-    // Security: teacher can only mark their own subjects
     if (!selectedSubject) {
       req.flash('error', 'Subject not found or not assigned to you');
       return res.redirect('/teacher/attendance');
     }
     students = await Student.find({ class: selectedSubject.class._id, isActive: true }).sort({ rollNumber: 1 });
-    const d = new Date(selectedDate);
     existing = await Attendance.findOne({
-      class: selectedSubject.class._id,
+      class:   selectedSubject.class._id,
       subject: selectedSubject.name,
-      date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) }
+      date:    dayRange(selectedDate)
     }).populate('records.student');
   }
 
@@ -56,11 +62,12 @@ exports.getMarkAttendance = async (req, res) => {
     selectedSubject,
     selectedSubjectId: subjectId || '',
     selectedDate,
-    error: req.flash('error'),
+    error:   req.flash('error'),
     success: req.flash('success')
   });
 };
 
+// ── POST Mark Attendance ──────────────────────────────────────────────────────
 exports.postMarkAttendance = async (req, res) => {
   const { subjectId, date, statuses } = req.body;
   try {
@@ -72,36 +79,43 @@ exports.postMarkAttendance = async (req, res) => {
       return res.redirect('/teacher/attendance');
     }
 
-    // Check time window
-    const now = new Date();
-    const [startH, startM] = (process.env.ATTENDANCE_START || '00:00').split(':').map(Number);
-    const [endH,   endM]   = (process.env.ATTENDANCE_END   || '23:59').split(':').map(Number);
-    const start = startH * 60 + startM, end = endH * 60 + endM;
-    const cur   = now.getHours() * 60 + now.getMinutes();
-    if (cur < start || cur > end) {
-      req.flash('error', `Attendance can only be marked between ${process.env.ATTENDANCE_START} and ${process.env.ATTENDANCE_END}`);
+    // ── Time window check (timezone-aware) ──────────────────────────────────
+    const window = checkAttendanceWindow();
+    if (!window.allowed) {
+      req.flash('error', window.message);
       return res.redirect(`/teacher/attendance?subjectId=${subjectId}&date=${date}`);
     }
 
-    const d = new Date(date);
-    const records = Object.entries(statuses || {}).map(([studentId, status]) => ({ student: studentId, status }));
+    const records = Object.entries(statuses || {}).map(([studentId, status]) => ({
+      student: studentId,
+      status
+    }));
 
     await Attendance.findOneAndUpdate(
       {
-        class: subject.class._id,
+        class:   subject.class._id,
         subject: subject.name,
-        date: { $gte: new Date(d.setHours(0,0,0,0)), $lte: new Date(d.setHours(23,59,59,999)) }
+        date:    dayRange(date)
       },
-      { class: subject.class._id, subject: subject.name, date: new Date(date), markedBy: req.user._id, records },
+      {
+        class:    subject.class._id,
+        subject:  subject.name,
+        date:     new Date(date),
+        markedBy: req.user._id,
+        records
+      },
       { upsert: true, new: true }
     );
+
     req.flash('success', `Attendance saved for ${subject.name}`);
   } catch (e) {
+    console.error('postMarkAttendance error:', e);
     req.flash('error', 'Failed: ' + e.message);
   }
   res.redirect(`/teacher/attendance?subjectId=${subjectId}&date=${date}`);
 };
 
+// ── View Records ──────────────────────────────────────────────────────────────
 exports.getViewAttendance = async (req, res) => {
   const { subjectId, dateFrom, dateTo } = req.query;
 
@@ -114,7 +128,9 @@ exports.getViewAttendance = async (req, res) => {
     selectedSubject = mySubjects.find(s => s._id.toString() === subjectId);
     if (selectedSubject) {
       const query = { class: selectedSubject.class._id, subject: selectedSubject.name };
-      if (dateFrom && dateTo) query.date = { $gte: new Date(dateFrom), $lte: new Date(dateTo + 'T23:59:59') };
+      if (dateFrom && dateTo) {
+        query.date = { $gte: new Date(dateFrom), $lte: new Date(dateTo + 'T23:59:59') };
+      }
       records = await Attendance.find(query).populate('records.student').sort({ date: -1 });
     }
   }
@@ -126,6 +142,6 @@ exports.getViewAttendance = async (req, res) => {
     selectedSubjectId: subjectId || '',
     selectedSubject,
     dateFrom: dateFrom || '',
-    dateTo: dateTo || ''
+    dateTo:   dateTo   || ''
   });
 };

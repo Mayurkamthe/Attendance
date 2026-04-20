@@ -3,7 +3,7 @@ services:
     name: attendance-system
     runtime: node
     region: singapore
-    branch: main
+    branch: master
     buildCommand: npm install
     startCommand: node server.js
     plan: free
@@ -12,6 +12,8 @@ services:
         value: 3000
       - key: NODE_ENV
         value: production
+      - key: TZ
+        value: Asia/Kolkata
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
