@@ -350,3 +350,25 @@ exports.deleteSubject = async (req, res) => {
   }
   res.redirect('/admin/subjects' + (classId ? '?classId=' + classId : ''));
 };
+
+// ── Reset Teacher Password ────────────────────────────────────────────────────
+exports.resetTeacherPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      req.flash('error', 'Password must be at least 6 characters');
+      return res.redirect('/admin/teachers');
+    }
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      req.flash('error', 'Teacher not found');
+      return res.redirect('/admin/teachers');
+    }
+    teacher.password = newPassword; // pre-save hook hashes it
+    await teacher.save();
+    req.flash('success', `Password reset for ${teacher.name}`);
+  } catch (e) {
+    req.flash('error', 'Reset failed: ' + e.message);
+  }
+  res.redirect('/admin/teachers');
+};

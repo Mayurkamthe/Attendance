@@ -55,27 +55,6 @@ exports.logout = (req, res) => {
 
 exports.getResetPassword = (req, res) => {
   res.render('auth/reset-password', {
-    title: 'Reset Password',
-    error: req.flash('error'),
-    success: req.flash('success')
+    title: 'Forgot Password'
   });
-};
-
-exports.postResetPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
-  try {
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
-    if (!user) {
-      req.flash('error', 'No account found with that email');
-      return res.redirect('/auth/reset-password');
-    }
-    user.password = newPassword;
-    await user.save();
-    req.flash('success', 'Password updated. Please login.');
-    res.redirect('/auth/login');
-  } catch (err) {
-    console.error('Reset error:', err);
-    req.flash('error', 'Reset failed');
-    res.redirect('/auth/reset-password');
-  }
 };

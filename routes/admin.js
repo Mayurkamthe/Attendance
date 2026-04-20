@@ -19,6 +19,7 @@ router.post('/classes/:id/delete', admin.deleteClass);
 router.get('/teachers', admin.getTeachers);
 router.post('/teachers', admin.createTeacher);
 router.post('/teachers/:id/update', admin.updateTeacher);
+router.post('/teachers/:id/reset-password', admin.resetTeacherPassword);
 
 router.get('/students', admin.getStudents);
 router.post('/students', admin.createStudent);

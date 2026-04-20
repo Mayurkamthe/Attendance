@@ -8,14 +8,7 @@
         <div><label>Full Name</label><input type="text" name="name" required class="form-input"></div>
         <div><label>Email</label><input type="email" name="email" required class="form-input"></div>
         <div><label>Phone</label><input type="text" name="phone" class="form-input"></div>
-        <div><label>Password</label><input type="password" name="password" required minlength="6" class="form-input"></div>
-        <div>
-          <label>Assign Classes</label>
-          <select name="assignedClasses" multiple class="form-input" style="height:90px">
-            <% classes.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
-          </select>
-          <p class="text-xs text-gray-400 mt-1">Hold Ctrl / Cmd to select multiple</p>
-        </div>
+        <div><label>Password</label><input type="password" name="password" required minlength="6" class="form-input" placeholder="Min 6 characters"></div>
         <button type="submit" class="btn-primary w-full">Add Teacher</button>
       </form>
     </div>
@@ -28,12 +21,12 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Classes</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
             <% if (!teachers.length) { %>
-              <tr><td colspan="6" class="text-center py-10 text-gray-400">No teachers added yet</td></tr>
+              <tr><td colspan="5" class="text-center py-10 text-gray-400">No teachers added yet</td></tr>
             <% } %>
-            <% teachers.forEach(t => { %>
+            <% teachers.forEach(function(t){ %>
               <tr>
                 <td>
                   <div class="flex items-center gap-2">
@@ -45,14 +38,26 @@
                 </td>
                 <td class="text-gray-500 text-xs"><%= t.email %></td>
                 <td class="text-gray-500"><%= t.phone || '—' %></td>
-                <td class="text-gray-500 text-xs max-w-[140px]"><%= t.assignedClasses.map(c=>c.name).join(', ') || '—' %></td>
                 <td><span class="<%= t.isActive ? 'badge-present' : 'badge-absent' %>"><%= t.isActive ? 'Active' : 'Inactive' %></span></td>
                 <td>
-                  <button onclick="openEditTeacher('<%= t._id %>','<%= t.name %>','<%= t.email %>','<%= t.phone||'' %>',<%= t.isActive %>)"
-                    class="btn-primary btn-sm">Edit</button>
+                  <div class="flex gap-2 flex-wrap">
+                    <button onclick="openEditTeacher(this)"
+                      data-id="<%= t._id %>"
+                      data-name="<%= encodeURIComponent(t.name) %>"
+                      data-email="<%= encodeURIComponent(t.email) %>"
+                      data-phone="<%= encodeURIComponent(t.phone || '') %>"
+                      data-active="<%= t.isActive %>"
+                      class="btn-primary btn-sm">Edit</button>
+                    <button onclick="openResetPassword(this)"
+                      data-id="<%= t._id %>"
+                      data-name="<%= encodeURIComponent(t.name) %>"
+                      class="btn-secondary btn-sm" style="background:#fef3c7;color:#92400e;border-color:#fde68a;">
+                      🔑 Reset Password
+                    </button>
+                  </div>
                 </td>
               </tr>
-            <% }) %>
+            <% }); %>
           </tbody>
         </table>
       </div>
@@ -60,7 +65,7 @@
   </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- Edit Teacher Modal -->
 <div id="editTeacherModal" class="modal-backdrop hidden">
   <div class="modal-box">
     <h3 class="text-base font-semibold text-gray-800 mb-4">Edit Teacher</h3>
@@ -68,12 +73,6 @@
       <div><label>Full Name</label><input type="text" name="name" id="etName" required class="form-input"></div>
       <div><label>Email</label><input type="email" name="email" id="etEmail" required class="form-input"></div>
       <div><label>Phone</label><input type="text" name="phone" id="etPhone" class="form-input"></div>
-      <div>
-        <label>Assign Classes</label>
-        <select name="assignedClasses" multiple class="form-input" style="height:90px">
-          <% classes.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
-        </select>
-      </div>
       <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
         <input type="checkbox" name="isActive" id="etActive" class="w-4 h-4 rounded">
         <label for="etActive" class="mb-0 text-sm text-gray-600 cursor-pointer">Account Active</label>
@@ -85,15 +84,98 @@
     </form>
   </div>
 </div>
+
+<!-- Reset Password Modal -->
+<div id="resetPwdModal" class="modal-backdrop hidden">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#fef3c7;">
+        <span style="font-size:20px;">🔑</span>
+      </div>
+      <div>
+        <h3 class="text-base font-semibold text-gray-800">Reset Password</h3>
+        <p class="text-xs text-gray-500 mt-0.5">For: <strong id="resetTeacherName"></strong></p>
+      </div>
+    </div>
+    <form id="resetPwdForm" method="POST" class="space-y-4">
+      <div>
+        <label>New Password</label>
+        <div style="position:relative;">
+          <input type="password" name="newPassword" id="resetPwdInput" required minlength="6" class="form-input" placeholder="Min 6 characters" style="padding-right:42px;">
+          <button type="button" onclick="toggleResetPwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;">
+            <svg id="resetEyeShow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg id="resetEyeHide" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">Minimum 6 characters</p>
+      </div>
+      <div>
+        <label>Confirm Password</label>
+        <input type="password" id="resetPwdConfirm" required minlength="6" class="form-input" placeholder="Re-enter password">
+        <p class="text-xs text-red-500 mt-1 hidden" id="pwdMismatch">Passwords do not match</p>
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button type="submit" id="resetSubmitBtn" class="btn-primary flex-1" style="background:#92400e;">Reset Password</button>
+        <button type="button" onclick="document.getElementById('resetPwdModal').classList.add('hidden')" class="btn-secondary flex-1">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-function openEditTeacher(id,name,email,phone,isActive){
-  document.getElementById('editTeacherForm').action='/admin/teachers/'+id+'/update';
-  document.getElementById('etName').value=name;
-  document.getElementById('etEmail').value=email;
-  document.getElementById('etPhone').value=phone;
-  document.getElementById('etActive').checked=isActive;
+function openEditTeacher(btn) {
+  const id     = btn.dataset.id;
+  const name   = decodeURIComponent(btn.dataset.name);
+  const email  = decodeURIComponent(btn.dataset.email);
+  const phone  = decodeURIComponent(btn.dataset.phone || '');
+  const active = btn.dataset.active === 'true';
+
+  document.getElementById('editTeacherForm').action = '/admin/teachers/' + id + '/update';
+  document.getElementById('etName').value   = name;
+  document.getElementById('etEmail').value  = email;
+  document.getElementById('etPhone').value  = phone;
+  document.getElementById('etActive').checked = active;
   document.getElementById('editTeacherModal').classList.remove('hidden');
 }
-document.getElementById('editTeacherModal').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+
+function openResetPassword(btn) {
+  const id   = btn.dataset.id;
+  const name = decodeURIComponent(btn.dataset.name);
+  document.getElementById('resetPwdForm').action = '/admin/teachers/' + id + '/reset-password';
+  document.getElementById('resetTeacherName').textContent = name;
+  document.getElementById('resetPwdInput').value   = '';
+  document.getElementById('resetPwdConfirm').value = '';
+  document.getElementById('pwdMismatch').classList.add('hidden');
+  document.getElementById('resetPwdModal').classList.remove('hidden');
+}
+
+function toggleResetPwd() {
+  const inp = document.getElementById('resetPwdInput');
+  const s = document.getElementById('resetEyeShow');
+  const h = document.getElementById('resetEyeHide');
+  if (inp.type === 'password') { inp.type = 'text'; s.style.display='none'; h.style.display=''; }
+  else { inp.type = 'password'; s.style.display=''; h.style.display='none'; }
+}
+
+// Confirm password check before submit
+document.getElementById('resetPwdForm').addEventListener('submit', function(e) {
+  const p1 = document.getElementById('resetPwdInput').value;
+  const p2 = document.getElementById('resetPwdConfirm').value;
+  if (p1 !== p2) {
+    e.preventDefault();
+    document.getElementById('pwdMismatch').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('pwdMismatch').classList.add('hidden');
+});
+document.getElementById('resetPwdConfirm').addEventListener('input', function() {
+  const p1 = document.getElementById('resetPwdInput').value;
+  const mismatch = document.getElementById('pwdMismatch');
+  if (this.value && this.value !== p1) mismatch.classList.remove('hidden');
+  else mismatch.classList.add('hidden');
+});
+
+document.getElementById('editTeacherModal').addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); });
+document.getElementById('resetPwdModal').addEventListener('click',    function(e){ if(e.target===this) this.classList.add('hidden'); });
 </script>
 <%- include('../partials/footer') %>
